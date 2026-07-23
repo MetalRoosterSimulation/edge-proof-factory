@@ -54,6 +54,21 @@
   .contribs .c{font-family:var(--mono);font-size:11px;color:var(--muted);
     border:1px solid var(--border);border-radius:6px;padding:2px 7px}
   .warm{color:var(--muted);font-size:12px;font-family:var(--mono)}
+  .explain-btn{margin-top:10px;font:inherit;font-size:11px;letter-spacing:.4px;
+    text-transform:uppercase;color:var(--accent);background:transparent;
+    border:1px solid var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,color .15s}
+  .explain-btn:hover{border-color:var(--accent)}
+  .explain-btn:disabled{opacity:.6;cursor:default}
+  .explain-panel{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;
+    font-size:12.5px;line-height:1.5;color:var(--ink)}
+  .explain-panel .lbl{font-size:10px;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:5px}
+  .explain-panel .model{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .explain-panel.note{color:var(--muted);font-style:italic}
+  .spin{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
   footer{color:var(--muted);font-size:12px;padding:16px 24px;border-top:1px solid var(--border)}
   footer code{color:var(--accent)}
   .pulse{animation:pulse 2s infinite}
@@ -103,6 +118,19 @@ function sparkline(vals){
     +'<polyline fill="none" stroke="'+col+'" stroke-width="1.8" points="'+pts+'"/>'
     +'</svg>';
 }
+const explain={};   // tool_id -> {state:'loading'|'done', text, available, model}
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function explainPanel(id){
+  const e=explain[id];
+  if(!e)return '';
+  if(e.state==='loading')
+    return '<div class="explain-panel note"><span class="spin"></span> asking the on-prem model…</div>';
+  if(e.available)
+    return '<div class="explain-panel"><div class="lbl">AI reasoning &amp; remediation'
+      +'<span class="model">· '+esc(e.model)+' · on-prem</span></div>'
+      +esc(e.text).replace(/\n+/g,'<br><br>')+'</div>';
+  return '<div class="explain-panel note">'+esc(e.text)+'</div>';
+}
 function card(v){
   const cl=CLASS[v.state]||'healthy';
   push(v.tool_id, v.warming?100:v.health);
@@ -112,6 +140,10 @@ function card(v){
         : 'forecast to critical: <b>~'+v.rul_frames+' cycles</b>');
   const contribs = (v.top_contributors||[]).map(c=>
      '<span class="c">'+c.sensor.replace(/_/g,' ')+' <b class="c-'+cl+'">z='+c.z+'</b></span>').join('');
+  const loading = explain[v.tool_id] && explain[v.tool_id].state==='loading';
+  const btn = v.warming ? '' :
+    '<button class="explain-btn" onclick="askExplain(\''+v.tool_id+'\')"'+(loading?' disabled':'')+'>'
+    +'&#129504; Explain'+(explain[v.tool_id]?' &#8635;':'')+'</button>';
   return ''
    +'<div class="card">'
    +'<div class="edge bg-'+cl+'"></div>'
@@ -121,7 +153,23 @@ function card(v){
    +sparkline(hist[v.tool_id])
    +'<div class="rul">'+rul+'</div>'
    +'<div class="contribs">'+contribs+'</div>'
+   +btn
+   +explainPanel(v.tool_id)
    +'</div>';
+}
+async function askExplain(id){
+  explain[id]={state:'loading'};
+  if(window._last)renderGrid(window._last);
+  try{
+    const r=await fetch('/api/explain/'+id,{cache:'no-store'});
+    const d=await r.json();
+    explain[id]={state:'done', available:!!d.available,
+      text: d.available ? d.explanation : (d.note||d.error||'unavailable'),
+      model: d.model};
+  }catch(e){
+    explain[id]={state:'done', available:false, text:'request failed: '+e};
+  }
+  if(window._last)renderGrid(window._last);
 }
 function push(id,val){ (hist[id]=hist[id]||[]).push(val); if(hist[id].length>MAXPTS)hist[id].shift(); }
 function tally(counts){
@@ -129,14 +177,18 @@ function tally(counts){
   return order.filter(([k])=>counts[k]).map(([k,c])=>
     '<span class="chip"><span class="dot bg-'+c+'"></span>'+(counts[k]||0)+' '+k.toLowerCase()+'</span>').join('');
 }
+function renderGrid(d){
+  document.getElementById('frames').textContent=d.frames_processed.toLocaleString();
+  document.getElementById('uptime').textContent=fmtUptime(d.uptime_s);
+  document.getElementById('tally').innerHTML=tally(d.counts);
+  document.getElementById('grid').innerHTML=d.tools.map(card).join('');
+}
 async function tick(){
   try{
     const r=await fetch('/api/health',{cache:'no-store'});
     const d=await r.json();
-    document.getElementById('frames').textContent=d.frames_processed.toLocaleString();
-    document.getElementById('uptime').textContent=fmtUptime(d.uptime_s);
-    document.getElementById('tally').innerHTML=tally(d.counts);
-    document.getElementById('grid').innerHTML=d.tools.map(card).join('');
+    window._last=d;
+    renderGrid(d);
     document.getElementById('live').classList.add('pulse');
   }catch(e){
     document.getElementById('live').textContent='● reconnecting';
