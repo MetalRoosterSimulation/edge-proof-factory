@@ -138,3 +138,48 @@ describe("governance ledger — the air-gapped GEA path", () => {
     expect(JSON.stringify(fields)).not.toContain("chamber_pressure");
   });
 });
+
+describe("downstream outage — the GEA offline-buffering exercise", () => {
+  it("buffers raw frames during the outage and inference sees nothing", () => {
+    const e = freshEngine({ autoFaultTool: null });
+    e.run(60);
+    const before = e.verdict("etch-01")!.frames;
+    e.setOutage(true);
+    e.run(20);
+    const g = e.gatewayStats();
+    expect(g.buffered).toBe(20 * DEFAULT_N_TOOLS);
+    expect(g.buffer_depth).toBe(20 * DEFAULT_N_TOOLS);
+    // Raw keeps flowing in; nothing was published downstream during the outage.
+    expect(g.raw_ingested).toBe(80 * DEFAULT_N_TOOLS);
+    expect(g.normalized_published).toBe(60 * DEFAULT_N_TOOLS);
+    expect(e.verdict("etch-01")!.frames).toBe(before);
+    expect(e.outage).toBe(true);
+  });
+
+  it("flushes the buffer in order on recovery — no frame lost", () => {
+    const e = freshEngine({ autoFaultTool: null });
+    e.run(60);
+    e.setOutage(true);
+    e.run(25);
+    e.setOutage(false);
+    const g = e.gatewayStats();
+    expect(g.buffer_depth).toBe(0);
+    expect(g.normalized_published).toBe(g.raw_ingested);
+    // The model caught up on every buffered frame.
+    expect(e.verdict("etch-01")!.frames).toBe(85);
+    expect(e.outage).toBe(false);
+  });
+
+  it("outage + recovery yields the same model state as an uninterrupted run", () => {
+    const a = freshEngine({ autoFaultTool: null });
+    const b = freshEngine({ autoFaultTool: null });
+    a.run(120);
+    b.run(60);
+    b.setOutage(true);
+    b.run(40);
+    b.setOutage(false);
+    b.run(20);
+    // Same seed, same frames in the same order — identical verdicts.
+    expect(b.snapshot().tools).toEqual(a.snapshot().tools);
+  });
+});

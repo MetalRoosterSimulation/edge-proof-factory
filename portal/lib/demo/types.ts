@@ -35,6 +35,8 @@ export type FaultName = "rf_match_drift" | "he_seal_leak" | "chiller_fault";
 export type GatewayStats = {
   raw_ingested: number;
   normalized_published: number;
+  buffered: number;
+  buffer_depth: number;
   derived_seen: number;
   losant_forwarded: number;
   losant_withheld_airgapped: number;

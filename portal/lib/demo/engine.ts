@@ -30,6 +30,7 @@ import type {
   FleetSnapshot,
   GatewayStats,
   HistorySample,
+  SensorFrame,
   ToolState,
   Verdict,
 } from "./types";
@@ -94,22 +95,44 @@ export class DemoEngine {
     }
     for (const tool of this.tools) {
       const raw = tool.frame(this.rng);
-      const normalized = this.gateway.normalize(tool.toolId, this.frame, raw);
-      const verdict = this.fleet.ingest(tool.toolId, normalized.sensors);
-      this.gateway.seeDerived(verdict);
-      let hist = this.history.get(tool.toolId);
-      if (!hist) {
-        hist = [];
-        this.history.set(tool.toolId, hist);
-      }
-      hist.push({
-        ts: this.frame,
-        health: verdict.warming ? 100 : verdict.health,
-        state: verdict.state,
-        sensors: normalized.sensors,
-      });
-      if (hist.length > HISTORY) hist.shift();
+      const normalized = this.gateway.ingestRaw(tool.toolId, this.frame, raw);
+      // During a downstream outage the gateway buffers the frame (offline
+      // buffering) and inference sees nothing until recovery.
+      if (normalized) this.score(normalized.tool_id, normalized.sensors);
     }
+  }
+
+  private score(toolId: string, sensors: SensorFrame): void {
+    const verdict = this.fleet.ingest(toolId, sensors);
+    this.gateway.seeDerived(verdict);
+    let hist = this.history.get(toolId);
+    if (!hist) {
+      hist = [];
+      this.history.set(toolId, hist);
+    }
+    hist.push({
+      ts: this.frame,
+      health: verdict.warming ? 100 : verdict.health,
+      state: verdict.state,
+      sensors,
+    });
+    if (hist.length > HISTORY) hist.shift();
+  }
+
+  /** Simulate a downstream (inference tier) outage — the kit's GEA
+   * offline-buffering exercise. While down, the gateway buffers raw frames;
+   * on recovery the buffer flushes through the model in order. */
+  setOutage(down: boolean): void {
+    this.gateway.downstreamUp = !down;
+    if (!down) {
+      for (const frame of this.gateway.flushBuffer()) {
+        this.score(frame.tool_id, frame.sensors);
+      }
+    }
+  }
+
+  get outage(): boolean {
+    return !this.gateway.downstreamUp;
   }
 
   /** Run many frames at once (pre-warm on page load so sparklines are full
