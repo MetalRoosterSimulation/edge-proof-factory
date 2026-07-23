@@ -67,14 +67,38 @@ Claude Desktop (`claude_desktop_config.json`):
 
 ## Wire the demo through Rancher, end to end
 
+### One command (recommended)
+
+With `.rancher-env` set and the k3d demo running (`make up`):
+
+```bash
+./scripts/wire-rancher.sh              # import cluster + deploy via Fleet, to 1/1
+```
+
+It authenticates, imports the k3d cluster, deploys the kit as a Fleet `GitRepo`
+from GitHub, and polls to `1/1`. It is **safe to re-run after `make down`/`make up`**:
+a re-created k3d cluster gets a new identity and can't reattach to the old Rancher
+object, so the script auto-detects the orphaned (non-active) object, deletes it +
+its stale GitRepo, and imports fresh. The kit's `fleet.yaml` sets
+`helm.takeOwnership: true`, so Fleet **adopts** the resources a local `make up`
+already deployed instead of erroring on ownership — no namespace deletion needed.
+
+Env overrides: `DEPLOY_FLEET=0` (import only), `GITREPO_URL`, `GITREPO_BRANCH`,
+`GITREPO_PATH`, `GITREPO_NAME`.
+
+### Manual / via the MCP tools
+
 1. `make up` in the reference kit (creates the k3d `edge-mvp` cluster).
 2. `rancher_import_cluster { name: "edge-mvp" }` → run the returned
    `kubectl apply -f <url>` against the k3d cluster → it joins your fleet.
-3. Push the kit manifests to a git repo, then
-   `rancher_deploy_via_fleet { name, repo, paths: ["reference-kits/semiconductor-predictive-maintenance/demo/k8s/base"] }`
+3. `rancher_deploy_via_fleet { name, repo, paths: ["reference-kits/semiconductor-predictive-maintenance/demo/k8s/base"] }`
    → Rancher/Fleet applies the kit. Now the running MVP is Rancher-managed.
 4. `rancher_list_workloads { cluster, namespace: "fab-edge" }` to read its health
    from inside Rancher.
+
+> Re-import gotcha: after `make down`/`make up`, delete the old (now "unavailable")
+> cluster object in Rancher before importing again — the one-command script above
+> does this for you.
 
 ## Notes
 - On the stdio transport, never write to stdout except JSON-RPC — the server logs

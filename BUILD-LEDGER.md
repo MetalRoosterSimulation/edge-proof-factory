@@ -102,7 +102,21 @@ create/push must be run by the user — the sandbox classifier blocks the agent 
 using a token file against api.github.com (`scripts/`-style helper written for the
 user to run).
 
+## Phase 8 — durable re-import (done 2026-07-23)
+Recreating the k3d cluster (`make down`/`up`) orphaned the Rancher object — a fresh
+k3d cluster can't reattach to the old imported-cluster identity, and Fleet re-hit
+the namespace-ownership conflict. Two durable fixes: (1) added
+`reference-kits/.../demo/k8s/base/fleet.yaml` with `helm.takeOwnership: true` +
+`releaseName: edge-proof-kit` so Fleet ADOPTS resources a local `make up` already
+deployed instead of erroring; (2) rewrote `scripts/wire-rancher.sh` to detect a
+non-active (orphaned) cluster object, delete it + its stale GitRepo + leftover
+agent namespaces, import fresh, and then deploy the Fleet GitRepo and poll to 1/1
+— all one command. `bash -n` clean. NOTE: fleet.yaml only takes effect once pushed
+to GitHub (Fleet pulls from the repo), so don't re-run wire-rancher against a
+working 1/1 setup until the push lands.
+
 ## Open threads
-- Doc updates after the initial push (this ledger, HOW-TO-RUN, START-HERE pointer)
-  are committed locally; re-run the publish helper to push them (agent can't push).
+- Doc/script commits (Phases 7-8) are committed locally; re-run the publish helper
+  to push them (agent can't push — sandbox blocks token+GitHub). After the push,
+  re-run `wire-rancher.sh` once to prove the one-command re-import/takeOwnership flow.
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.

@@ -1,0 +1,13 @@
+# Fleet (Rancher GitOps) config for the Edge Proof Kit base.
+#
+# Fleet renders this kustomize overlay through Helm before applying. takeOwnership
+# lets Fleet ADOPT resources that already exist on the cluster (e.g. from a local
+# `make up` / `kubectl apply`) instead of failing with an ownership-metadata error
+# ("... cannot be imported into the current release: invalid ownership metadata").
+# This is what makes "run the demo locally first, then manage it via Fleet" work
+# without having to delete the fab-edge namespace before importing.
+defaultNamespace: fab-edge
+
+helm:
+  releaseName: edge-proof-kit
+  takeOwnership: true
