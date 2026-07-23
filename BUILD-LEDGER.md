@@ -146,6 +146,56 @@ Fleet lesson (durable): a Fleet GitRepo path must be self-contained; kustomize
 overlays that reach up to `../base` fail. Use additive self-contained bundles with
 distinct Helm release names and list multiple `paths` instead.
 
+## Phase 10 — Factory Portal: Vercel + Supabase (done 2026-07-23)
+User asked to "move everything to Vercel using Supabase as backend so it
+works." Before building, surfaced the core conflict: the factory's actual
+deliverable is a runnable k3s/Rancher demo, and Vercel is serverless — it
+cannot host a persistent Kubernetes cluster. Clarified scope with the user:
+build a new read-only **Factory Portal** (Next.js + Supabase) that presents
+the proof kit catalog, handoff docs, and this ledger as a live web page; the
+k3s/Rancher demo itself stays exactly as-is, untouched. A dedicated Supabase
+project was chosen over reusing the one already wired to
+`~/Work/svirt-sizing-tool` (different product, keep the data separate). A
+planned research/competitor-analysis phase was explicitly dropped from scope
+by the user ("only build the demo, don't worry about the other things like
+competitor scraping") — went straight to building.
+
+Built in `portal/`: Next.js 16 (App Router) — read its own generated
+`AGENTS.md`/`node_modules/next/dist/docs/` before writing routing code, since
+Next 16 has real breaking changes from prior versions (route `params` is now
+a `Promise`, Cache Components is opt-in and deliberately left off here so
+Supabase content updates show without a redeploy — every data route uses
+`export const dynamic = "force-dynamic"` instead). Five-table Postgres schema
+(`proof_kits`, `component_map_rows`, `scale_up_stages`, `footprint_specs`,
+`ledger_phases`, `open_threads`) with RLS public-read policies plus the base
+`GRANT SELECT` Postgres also requires (RLS alone 403's — hit and fixed this
+via a real local Supabase instance before it could have surfaced in
+production). Seed content (`supabase/seed-data.ts`) is transcribed verbatim
+from the existing handoff docs and this ledger — no invented facts, per the
+factory's own doctrine. Home / kit-detail / ledger pages, error boundary with
+a friendly "Supabase not configured" panel instead of a raw stack trace (same
+lesson as Phase 9's `/api/explain`).
+
+**Verified before commit, not just described:** ran a real local Supabase
+stack (`supabase start` — Postgres + PostgREST + Studio via Docker),
+migrated, seeded, then `npm run build` + `npm start` and fetched all three
+routes over HTTP confirming real data round-tripped from Postgres through to
+rendered HTML (kit component-map rows, ledger phase titles, the open-thread
+note distinguishing this from the svirt-sizing-tool Supabase project). 19/19
+Vitest tests pass (data-layer query logic against an injected fake Supabase
+client, seed-data referential integrity, component rendering); `npm run
+lint` clean; `npm run build` clean.
+
+**Not done in this phase — needs the user's own login:** a hosted Supabase
+project and a Vercel project don't exist yet; provisioning them requires the
+user's account credentials, which this session doesn't have. `portal/README.md`
+has the exact steps. `.mcp.json` for `portal/` will get `vercel` +
+`supabase` server entries once those projects exist (same pattern as
+`svirt-sizing-tool/.mcp.json`) — not before, since a config referencing a
+nonexistent project is worse than no config.
+
 ## Open threads
-- One local commit (this ledger note) pending push — re-run the publish helper.
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
+- Portal (`portal/`) needs a live, dedicated Supabase project and a Vercel
+  project linked to this repo before it's reachable at a public URL — both
+  require the user's own account login. See `portal/README.md` § Deploying.

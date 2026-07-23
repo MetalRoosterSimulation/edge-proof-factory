@@ -34,6 +34,9 @@ make fault TOOL=etch-03   # watch a tool degrade; RUL counts down
   (runnable + tested). Read its `README.md`.
 - `integrations/rancher-mcp-server/` — MCP server so an AI assistant can see your
   Rancher fleet and deploy a kit via Fleet GitOps.
+- `portal/` — Next.js + Supabase partner portal presenting the kit catalog and
+  build ledger as a live web page (Vercel-hosted once deployed). Read its
+  `README.md`. Does not run the demo itself — see its "not a replacement" note.
 - `docs/` — the factory brain: `project-brief.md` (mandate + locked decisions),
   `suse-edge-ai-stack.md` (sourced SUSE product facts), `handoff-doctrine.md`
   (the open→SUSE mapping rules + voice), `footprint-rules.md`.

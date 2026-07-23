@@ -35,6 +35,10 @@ consumes their output (use case, architecture, economics) and produces the proof
 - `docs/` — project-brief, suse-edge-ai-stack, handoff-doctrine, footprint-rules.
 - `templates/` — component-map / runbook / scale-up templates for new kits.
 - `tools/validate_kit.py` — the release gate (run before shipping a kit).
+- `portal/` — the Vercel + Supabase partner portal: a read-only Next.js app
+  presenting the proof kit catalog, handoff docs, and this ledger as a live
+  web page. It does not run the k3s demo (can't — Vercel is serverless); it
+  displays what the demo already proved. See `portal/README.md`.
 
 ## To produce a new Proof Kit
 Follow `RUN.md`. In short: pull the use case + architecture from the sibling
