@@ -322,6 +322,14 @@ export const ledgerPhases: Omit<LedgerPhase, "id">[] = [
       "Built a read-only Next.js 16 portal (this app) that surfaces the proof kit catalog, component maps, scale-up paths, footprint specs, and this build ledger from a dedicated Supabase Postgres project, deployed to Vercel. The k3s/Rancher demo itself is unchanged and cannot run on Vercel (serverless has no persistent cluster) — the portal is a presentation layer on top, not a replacement. Schema, seed data (transcribed from the existing handoff docs and this ledger, not invented), RLS policies, and the full test suite were built and verified against a local Supabase stack before any cloud resources were requested. Research/competitor-analysis phase was explicitly dropped from scope by user direction; the portal is being built directly. Live: Supabase project \"edge-ai-demo\" (ref vpdtwiyvatpwzkapvmcl, us-east-1, free tier) provisioned via the Supabase MCP server (OAuth, no token pasted anywhere); schema + seed applied and verified (zero security advisories). Initially deployed to Vercel via the deploy_to_vercel MCP tool (a one-shot file upload) at https://edge-ai-demo.vercel.app. Later upgraded to git-integrated CI: connected the Vercel project to github.com/MetalRoosterSimulation/edge-proof-factory, set NEXT_PUBLIC_SUPABASE_URL/ANON_KEY as Production+Preview env vars via `vercel env add` (CLI login is an email link, no token pasted), and pushed. First git-triggered build failed — \"Couldn't find any `pages` or `app` directory\" — because the project's Root Directory defaulted to the repo root, not `portal/`; fixed via a direct PATCH to the Vercel REST API (`rootDirectory: \"portal\"`) using the CLI's own cached auth token, since neither the MCP server nor `vercel project update` exposes that setting. Next push built clean and served real Postgres data — confirmed by fetching /, /ledger, and /kits/semiconductor-predictive-maintenance directly against the new deployment ID.",
     done_date: "2026-07-23",
   },
+  {
+    phase_number: 11,
+    title: "The working demo ON Vercel: /demo in-browser simulation",
+    status: "done",
+    body_md:
+      "Phase 10 put the documentation on Vercel; this phase put the **working demo** there. A five-agent research swarm ran first: Vercel has no always-on compute primitive (300s function cap and daily-only cron on Hobby), so a server-driven telemetry feed was rejected; nobody in the predictive-maintenance market (Augury, C3 AI, Sight Machine, Siemens, PTC — or SUSE itself) offers a no-signup, live, fault-injectable public demo, which made that exact combination the target.\n\nBuilt: the kit's whole pipeline — sensor simulator, gateway governance tier, and the SPC health model (Welford frozen baselines, clipped z-scores, Hotelling T-squared, fast/slow EWMA, least-squares RUL) — ported to TypeScript and running entirely in the visitor's browser at [/demo](/demo). Per-visitor sandboxed fleet, fault inject/heal per tool, live governance counters (nothing leaves the tab), and an architecture x-ray mapping every on-page element to its kit tier and SUSE production counterpart.\n\nHonesty decisions, adopted from an adversarial review before any code: the page is labeled an interactive **simulation** of the Proof Kit — it proves the model, not the SUSE stack; parity with the Python model is enforced by replaying 590 frames recorded from the real kit through the port in CI (health within 0.011, anomaly within 2e-4, RUL within 1 frame); the planned hosted-LLM explain route was cut because the kit's explain tier is valuable precisely because it runs on-prem (Phase 9); the demo route uses no Supabase at runtime so it stays live even if this content backend sleeps; the simulation pauses while its tab is hidden because the model's time base is frames, and a wall-clock catch-up would misrepresent it.\n\nVerified before ship: 61/61 Vitest (including full golden parity), lint and build clean, /demo prerendered static, kit directory byte-untouched, and the production URL exercised live post-deploy.",
+    done_date: "2026-07-23",
+  },
 ];
 
 export const openThreads: Omit<OpenThread, "id" | "created_at">[] = [
@@ -334,5 +342,10 @@ export const openThreads: Omit<OpenThread, "id" | "created_at">[] = [
     description:
       "Portal is served via a one-shot Vercel file deploy (MCP deploy_to_vercel), not git-integrated CI, and has no custom domain. Recommended durable follow-up: Import Git Repository in the Vercel dashboard to connect it to github.com/MetalRoosterSimulation/edge-proof-factory (root directory portal/) so future commits auto-deploy, and add NEXT_PUBLIC_SUPABASE_URL/ANON_KEY as dashboard env vars at that point (the Vercel MCP server has no env-var API).",
     status: "resolved",
+  },
+  {
+    description:
+      "Vercel plan for edge-ai-demo: if the account is on Hobby, partner-facing (commercial) use sits outside Hobby's non-commercial fair-use terms — decide whether to move the project to a Pro team (~$20/mo; also lifts the 300s function and daily-cron caps).",
+    status: "open",
   },
 ];
