@@ -112,8 +112,15 @@ deployed instead of erroring; (2) rewrote `scripts/wire-rancher.sh` to detect a
 non-active (orphaned) cluster object, delete it + its stale GitRepo + leftover
 agent namespaces, import fresh, and then deploy the Fleet GitRepo and poll to 1/1
 — all one command. `bash -n` clean. NOTE: fleet.yaml only takes effect once pushed
-to GitHub (Fleet pulls from the repo), so don't re-run wire-rancher against a
-working 1/1 setup until the push lands.
+to GitHub (Fleet pulls from the repo).
+
+**VERIFIED end to end 2026-07-23:** pushed fleet.yaml, then tore down + `make up`
+fresh (fab-edge deployed by kubectl, no Helm labels) and ran `wire-rancher.sh`
+once. It auto-created a fresh cluster (`c-mvnq2`), reached active, deployed the
+GitRepo, and hit **1/1**. Confirmed adoption (not recreate): pods kept their
+pre-Fleet age (3m16s = the `make up` pods) and gained `managed-by: Helm` +
+`objectset.rio.cattle.io/hash`. No namespace deletion, no force-sync needed — the
+exact dance that failed twice before. Dashboard 200, fleet healthy.
 
 ## Open threads
 - Doc/script commits (Phases 7-8) are committed locally; re-run the publish helper
