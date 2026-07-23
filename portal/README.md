@@ -25,6 +25,17 @@ side changes, regenerate the vectors and re-run the parity suite. The demo
 route uses no Supabase at runtime, so it stays live even if the content
 backend's free-tier project pauses.
 
+The full kit experience is on the page: fault inject/heal, the gateway
+tier's **offline buffering** (outage toggle → buffer → flush), an egress
+inspector, and the kit's **AI tier as a labeled hosted stand-in** —
+`/api/explain` + `/api/chat` run the kit's own prompts
+(`service.py` `_api_explain` / `_fleet_context`) against `claude-opus-4-8`
+via the official Anthropic SDK, accepting **derived verdicts only** (raw
+telemetry is rejected by `lib/demo/ai-context.ts`, mirroring the governed
+egress contract). Without `ANTHROPIC_API_KEY` the routes degrade to the
+kit-style "answered on-prem via make ai" note. To enable on Vercel: add
+`ANTHROPIC_API_KEY` under Project → Settings → Environment Variables.
+
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack). Next 16 has real breaking changes

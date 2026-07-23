@@ -317,8 +317,44 @@ while ticking is paused/browser-throttled. (Chrome throttles hidden-tab
 timers to 1/min after 5 min — the sim "freezing" in a backgrounded window is
 that throttling plus the deliberate pause-on-hidden, not a bug.)
 
+## Phase 12 — the FULL demo on Vercel: buffering + AI tier (2026-07-23)
+User clarified the audience: the Vercel demo is for SUSE colleagues to study
+and rebuild for partners — so the whole kit experience must be there, not
+just the console. Two gaps closed:
+
+- **GEA offline buffering, live.** The gateway port now runs gateway.py's
+  buffer path: a "Simulate downstream outage" toggle buffers raw frames
+  (bounded deque, in order), inference sees nothing, and restoring flushes
+  every frame through the model — with a test proving outage+recovery yields
+  byte-identical fleet state to an uninterrupted run. Buffer counters +
+  an egress inspector (the exact derived JSON allowed across the boundary)
+  join the governance panel.
+- **The AI tier, as a labeled hosted stand-in.** Phase 11 cut the hosted LLM
+  because the public demo shouldn't invert the on-prem story; for an internal
+  study audience it returns clearly labeled: /api/explain and /api/chat
+  (official Anthropic TS SDK, claude-opus-4-8) run the kit's own prompts —
+  service.py's _api_explain and _fleet_context — behind a derived-verdict-only
+  contract enforced by parsing, so raw telemetry has no path into a prompt.
+  Per-tool "Explain (AI)" joins the deterministic diagnosis; a Fab Assistant
+  chat grounds every answer in the live fleet snapshot (the kit's Open WebUI
+  flow). No ANTHROPIC_API_KEY → the routes degrade to the kit-style
+  "answered on-prem via make ai" note. Coarse rate limiting; the routes are
+  the demo's only cost surface.
+- **Study map.** The architecture x-ray now lists, per tier, the exact source
+  files a colleague would read to rebuild it (portal port ↔ kit original),
+  plus the AI tier row and repo link.
+
+Verified: 82/82 vitest (55 demo tests; new: outage equivalence, AI context
+builders, mocked-SDK route tests incl. governance rejections), lint + build
+clean (/demo static; /api/chat + /api/explain serverless). ACTION REQUIRED
+for AI features on the live site: set ANTHROPIC_API_KEY on the Vercel
+project (Production + Preview) — everything else works without it.
+
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
+- ANTHROPIC_API_KEY not yet set on the Vercel project — until the user adds
+  it (Vercel dashboard → edge-ai-demo → Settings → Environment Variables),
+  Explain (AI) and the Fab Assistant show the graceful "not configured" note.
 - Vercel plan: edge-ai-demo currently rides the account's existing plan; if
   it is Hobby, partner-facing (commercial) use sits outside Hobby's
   non-commercial fair-use terms — decide whether to move the project to a

@@ -330,6 +330,14 @@ export const ledgerPhases: Omit<LedgerPhase, "id">[] = [
       "Phase 10 put the documentation on Vercel; this phase put the **working demo** there. A five-agent research swarm ran first: Vercel has no always-on compute primitive (300s function cap and daily-only cron on Hobby), so a server-driven telemetry feed was rejected; nobody in the predictive-maintenance market (Augury, C3 AI, Sight Machine, Siemens, PTC — or SUSE itself) offers a no-signup, live, fault-injectable public demo, which made that exact combination the target.\n\nBuilt: the kit's whole pipeline — sensor simulator, gateway governance tier, and the SPC health model (Welford frozen baselines, clipped z-scores, Hotelling T-squared, fast/slow EWMA, least-squares RUL) — ported to TypeScript and running entirely in the visitor's browser at [/demo](/demo). Per-visitor sandboxed fleet, fault inject/heal per tool, live governance counters (nothing leaves the tab), and an architecture x-ray mapping every on-page element to its kit tier and SUSE production counterpart.\n\nHonesty decisions, adopted from an adversarial review before any code: the page is labeled an interactive **simulation** of the Proof Kit — it proves the model, not the SUSE stack; parity with the Python model is enforced by replaying 590 frames recorded from the real kit through the port in CI (health within 0.011, anomaly within 2e-4, RUL within 1 frame); the planned hosted-LLM explain route was cut because the kit's explain tier is valuable precisely because it runs on-prem (Phase 9); the demo route uses no Supabase at runtime so it stays live even if this content backend sleeps; the simulation pauses while its tab is hidden because the model's time base is frames, and a wall-clock catch-up would misrepresent it.\n\nVerified before ship: 61/61 Vitest (including full golden parity), lint and build clean, /demo prerendered static, kit directory byte-untouched, and the production URL exercised live post-deploy.",
     done_date: "2026-07-23",
   },
+  {
+    phase_number: 12,
+    title: "The FULL demo on Vercel: offline buffering + AI tier",
+    status: "done",
+    body_md:
+      "The demo's audience is SUSE colleagues studying the kit to rebuild it for partners, so the whole kit experience moved onto [/demo](/demo). The gateway tier's **offline buffering** is now live: simulate a downstream outage, watch raw frames buffer in order, restore, and watch every frame flush through the model — with a test proving outage-plus-recovery yields identical fleet state to an uninterrupted run. An egress inspector shows the exact derived JSON allowed across the governance boundary.\n\nThe kit's **AI tier** returns as a clearly labeled hosted stand-in: per-tool Explain and a fleet-grounded Fab Assistant chat run the kit's own prompts (the on-prem explain endpoint and the Open WebUI fleet context from Phase 9) against a hosted Claude model — accepting derived verdicts only, enforced by parsing, so raw telemetry has no path into a prompt. Without an API key the features degrade to the kit-style \"answered on-prem via make ai\" note. The architecture x-ray became a study map: every tier lists the exact source files (browser port and kit original) a colleague reads to rebuild it.\n\nVerified: 82/82 tests, lint and build clean, exercised live on the production URL.",
+    done_date: "2026-07-23",
+  },
 ];
 
 export const openThreads: Omit<OpenThread, "id" | "created_at">[] = [
@@ -346,6 +354,11 @@ export const openThreads: Omit<OpenThread, "id" | "created_at">[] = [
   {
     description:
       "Vercel plan for edge-ai-demo: if the account is on Hobby, partner-facing (commercial) use sits outside Hobby's non-commercial fair-use terms — decide whether to move the project to a Pro team (~$20/mo; also lifts the 300s function and daily-cron caps).",
+    status: "open",
+  },
+  {
+    description:
+      "ANTHROPIC_API_KEY not yet set on the Vercel project — until it is added (Vercel dashboard → edge-ai-demo → Settings → Environment Variables, Production + Preview), the demo's Explain (AI) and Fab Assistant features show the graceful \"not configured\" note; everything else works without it.",
     status: "open",
   },
 ];
