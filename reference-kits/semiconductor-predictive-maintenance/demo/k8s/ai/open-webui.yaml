@@ -19,7 +19,14 @@ spec:
           ports: [{ containerPort: 8080, name: http }]
           env:
             - { name: OLLAMA_BASE_URL, value: "http://ollama:11434" }
-            - { name: WEBUI_AUTH, value: "false" }   # demo only
+            # Demo auth: the :main image still shows a signup and defaults new
+            # users to "pending" (needs admin approval) even with WEBUI_AUTH off,
+            # which locks everyone out. Make every signup an active admin so the
+            # demo is zero-friction. (The pod's DB is emptyDir and resets on each
+            # roll, so this must be config, not a one-time DB edit.)
+            - { name: WEBUI_AUTH, value: "false" }
+            - { name: DEFAULT_USER_ROLE, value: "admin" }
+            - { name: ENABLE_SIGNUP, value: "true" }
             # Wire in the "fab-assistant" model — an OpenAI-compatible endpoint on
             # edge-inference that grounds every chat in the LIVE fleet snapshot.
             # Ask it "which tools are at risk and what do I do?" and it answers
