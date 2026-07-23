@@ -84,8 +84,12 @@ export function DemoClient() {
     boot(Number.isFinite(parsed) ? parsed : DEFAULT_SEED);
   }, [boot]);
 
-  // Tick while visible; pause (with notice) while hidden.
+  // Tick while visible; pause (with notice) while hidden. The initial state
+  // must be read too — a tab restored/opened in the background never fires
+  // visibilitychange, and the notice should show from the first paint.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only sync with document.hidden
+    setHidden(document.hidden);
     const onVisibility = () => setHidden(document.hidden);
     document.addEventListener("visibilitychange", onVisibility);
     const interval = window.setInterval(() => {
@@ -100,11 +104,19 @@ export function DemoClient() {
     };
   }, []);
 
+  // Inject/heal re-read the view immediately so the button flips on click
+  // even while ticking is paused (hidden tab) or throttled by the browser.
   const inject = useCallback((toolId: string, fault: FaultName) => {
-    engineRef.current?.injectFault(toolId, fault);
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.injectFault(toolId, fault);
+    setView(readView(engine));
   }, []);
   const heal = useCallback((toolId: string) => {
-    engineRef.current?.heal(toolId);
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.heal(toolId);
+    setView(readView(engine));
   }, []);
   const reseed = useCallback(() => {
     // Deterministic-but-fresh: derive the next seed from the current one so
@@ -174,9 +186,9 @@ export function DemoClient() {
       </div>
 
       <p className="text-sm text-black/70 dark:text-white/70">
-        Six simulated plasma-etch tools. <b>etch-03</b> was seeded with a slow
-        RF match drift (the kit&apos;s auto-fault option) — watch its health
-        fall and a cycles-to-critical forecast appear. Inject a fault on any
+        Six simulated plasma-etch tools. <b>etch-03</b>{" "}
+        was seeded with a slow RF match drift (the kit&apos;s auto-fault
+        option) — watch its health fall and a cycles-to-critical forecast appear. Inject a fault on any
         healthy tool and the model detects it from the sensor shift; heal it
         and the health recovers.
       </p>
