@@ -20,10 +20,31 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArchitectureXray } from "@/components/demo/ArchitectureXray";
+import { FabAssistant } from "@/components/demo/FabAssistant";
 import { GovernancePanel } from "@/components/demo/GovernancePanel";
-import { ToolCard } from "@/components/demo/ToolCard";
+import { ToolCard, type ExplainState } from "@/components/demo/ToolCard";
+import type { DerivedVerdict } from "@/lib/demo/ai-context";
+import { derivedFields } from "@/lib/demo/gateway";
 import { DEFAULT_SEED, DemoEngine } from "@/lib/demo/engine";
-import type { FaultName, FleetSnapshot, GatewayStats } from "@/lib/demo/types";
+import type {
+  FaultName,
+  FleetSnapshot,
+  GatewayStats,
+  Verdict,
+} from "@/lib/demo/types";
+
+/** The derived contract — the ONLY shape allowed to leave the tab (sent to
+ * the AI stand-in routes; mirrors the kit's governed egress + attribution). */
+function toDerived(v: Verdict): DerivedVerdict {
+  return {
+    tool_id: v.tool_id,
+    health: v.health,
+    state: v.state,
+    rul_frames: v.rul_frames,
+    warming: v.warming,
+    top_contributors: v.top_contributors,
+  };
+}
 
 const TICK_HZ = 4;
 const PREWARM_FRAMES = 150; // past warmup (30) + auto-fault start (40)
@@ -34,6 +55,7 @@ type View = {
   histories: Record<string, number[]>;
   activeFaults: Record<string, FaultName | null>;
   seed: number;
+  outage: boolean;
 };
 
 function readView(engine: DemoEngine): View {
@@ -49,6 +71,7 @@ function readView(engine: DemoEngine): View {
     histories,
     activeFaults,
     seed: engine.seed,
+    outage: engine.outage,
   };
 }
 
@@ -64,6 +87,7 @@ export function DemoClient() {
   const [view, setView] = useState<View | null>(null);
   const [hidden, setHidden] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [explains, setExplains] = useState<Record<string, ExplainState>>({});
 
   const boot = useCallback((seed: number) => {
     const engine = new DemoEngine({ seed });
@@ -80,7 +104,7 @@ export function DemoClient() {
   useEffect(() => {
     const param = new URLSearchParams(window.location.search).get("seed");
     const parsed = param == null ? NaN : Number.parseInt(param, 10);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     boot(Number.isFinite(parsed) ? parsed : DEFAULT_SEED);
   }, [boot]);
 
@@ -88,7 +112,7 @@ export function DemoClient() {
   // must be read too — a tab restored/opened in the background never fires
   // visibilitychange, and the notice should show from the first paint.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only sync with document.hidden
+     
     setHidden(document.hidden);
     const onVisibility = () => setHidden(document.hidden);
     document.addEventListener("visibilitychange", onVisibility);
@@ -118,6 +142,51 @@ export function DemoClient() {
     engine.heal(toolId);
     setView(readView(engine));
   }, []);
+  const toggleOutage = useCallback(() => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.setOutage(!engine.outage);
+    setView(readView(engine));
+  }, []);
+  // The kit's explain flow: POST the tool's DERIVED verdict (never raw
+  // telemetry) to the hosted stand-in; degrade to the note on failure.
+  const explainTool = useCallback(async (toolId: string) => {
+    const verdict = engineRef.current?.verdict(toolId);
+    if (!verdict) return;
+    setExplains((prev) => ({ ...prev, [toolId]: { status: "loading" } }));
+    try {
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(toDerived(verdict)),
+      });
+      const data = await res.json();
+      setExplains((prev) => ({
+        ...prev,
+        [toolId]: {
+          status: "done",
+          available: Boolean(data.available),
+          text: data.available
+            ? data.explanation
+            : (data.note ?? data.error ?? "unavailable"),
+          model: data.model,
+        },
+      }));
+    } catch (err) {
+      setExplains((prev) => ({
+        ...prev,
+        [toolId]: {
+          status: "done",
+          available: false,
+          text: `request failed: ${err instanceof Error ? err.message : err}`,
+        },
+      }));
+    }
+  }, []);
+  const getFleet = useCallback(
+    () => (engineRef.current?.snapshot().tools ?? []).map(toDerived),
+    [],
+  );
   const reseed = useCallback(() => {
     // Deterministic-but-fresh: derive the next seed from the current one so
     // the page stays free of nondeterministic sources.
@@ -140,8 +209,9 @@ export function DemoClient() {
     );
   }
 
-  const { snapshot, gateway, histories, activeFaults, seed } = view;
+  const { snapshot, gateway, histories, activeFaults, seed, outage } = view;
   const counts = Object.entries(snapshot.counts) as Array<[string, number]>;
+  const worst = snapshot.tools[0];
 
   return (
     <div className="space-y-8">
@@ -200,13 +270,21 @@ export function DemoClient() {
             verdict={v}
             history={histories[v.tool_id] ?? []}
             activeFault={activeFaults[v.tool_id] ?? null}
+            explain={explains[v.tool_id]}
             onInject={inject}
             onHeal={heal}
+            onExplain={explainTool}
           />
         ))}
       </div>
 
-      <GovernancePanel stats={gateway} />
+      <GovernancePanel
+        stats={gateway}
+        outage={outage}
+        onToggleOutage={toggleOutage}
+        egressSample={worst ? derivedFields(worst) : null}
+      />
+      <FabAssistant getFleet={getFleet} />
       <ArchitectureXray />
     </div>
   );

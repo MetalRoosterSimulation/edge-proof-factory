@@ -17,18 +17,27 @@ const STATE_EDGE: Record<ToolState, string> = {
   CRITICAL: "bg-red-500",
 };
 
+/** State of one tool's AI explanation (the kit dashboard's `explain` map). */
+export type ExplainState =
+  | { status: "loading" }
+  | { status: "done"; available: boolean; text: string; model?: string };
+
 export function ToolCard({
   verdict,
   history,
   activeFault,
+  explain,
   onInject,
   onHeal,
+  onExplain,
 }: {
   verdict: Verdict;
   history: number[];
   activeFault: FaultName | null;
+  explain?: ExplainState;
   onInject: (toolId: string, fault: FaultName) => void;
   onHeal: (toolId: string) => void;
+  onExplain: (toolId: string) => void;
 }) {
   const v = verdict;
   const dx = diagnose(v);
@@ -82,10 +91,29 @@ export function ToolCard({
           <span className="font-semibold">Signature match: {dx.title}.</span>{" "}
           {dx.blurb}{" "}
           <span className="text-black/50 dark:text-white/50">
-            (model attribution × the kit&apos;s fault library — in the kit this
-            is answered on-prem by the SUSE AI tier)
+            (deterministic — model attribution × the kit&apos;s fault library)
           </span>
         </p>
+      )}
+      {explain && (
+        <div className="mt-2 border-t border-dashed border-black/10 pt-2 text-xs dark:border-white/10">
+          {explain.status === "loading" ? (
+            <p className="text-black/50 italic dark:text-white/50">
+              asking the hosted model…
+            </p>
+          ) : explain.available ? (
+            <p className="text-black/70 dark:text-white/70">
+              <span className="font-semibold uppercase tracking-wider text-black/50 dark:text-white/50">
+                AI reasoning{explain.model ? ` · ${explain.model}` : ""} · hosted
+                stand-in
+              </span>
+              <br />
+              {explain.text}
+            </p>
+          ) : (
+            <p className="text-black/50 italic dark:text-white/50">{explain.text}</p>
+          )}
+        </div>
       )}
       {!v.warming && (
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -110,6 +138,14 @@ export function ToolCard({
               </button>
             ))
           )}
+          <button
+            type="button"
+            onClick={() => onExplain(v.tool_id)}
+            disabled={explain?.status === "loading"}
+            className="rounded-md border border-black/15 px-2.5 py-1 text-xs font-medium hover:bg-black/5 disabled:opacity-50 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            {explain ? "Re-explain (AI)" : "Explain (AI)"}
+          </button>
         </div>
       )}
     </div>

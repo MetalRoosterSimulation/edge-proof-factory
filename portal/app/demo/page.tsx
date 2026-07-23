@@ -29,8 +29,14 @@ export default function DemoPage() {
           forecast — ported to TypeScript and running entirely in this tab on
           synthetic telemetry. Parity with the Python model is enforced by
           replaying 590 recorded frames from the real kit through the port in
-          CI. The kit itself runs on single-node k3s under Rancher/Fleet;
-          this page simulates it, it does not replace it.
+          CI. The gateway tier&apos;s offline buffering is here too (simulate
+          an outage, watch it buffer and flush), and the kit&apos;s AI tier —
+          per-tool Explain and the fleet-grounded Fab Assistant — is served by
+          a hosted Claude model as a labeled stand-in that receives derived
+          verdicts only, never raw telemetry; in the kit that tier runs fully
+          on-prem (Ollama + Open WebUI). The kit itself runs on single-node
+          k3s under Rancher/Fleet; this page simulates it, it does not
+          replace it.
         </p>
       </div>
 

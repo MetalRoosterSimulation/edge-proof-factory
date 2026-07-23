@@ -32,6 +32,7 @@ describe("ToolCard", () => {
         activeFault="rf_match_drift"
         onInject={() => {}}
         onHeal={() => {}}
+        onExplain={() => {}}
       />,
     );
     expect(screen.getByText("etch-03")).toBeInTheDocument();
@@ -55,6 +56,7 @@ describe("ToolCard", () => {
         activeFault={null}
         onInject={onInject}
         onHeal={() => {}}
+        onExplain={() => {}}
       />,
     );
     const buttons = screen.getAllByRole("button", { name: /Inject/ });
@@ -65,31 +67,99 @@ describe("ToolCard", () => {
 });
 
 describe("GovernancePanel", () => {
-  it("shows the air-gapped ledger with zero forwarded", () => {
-    const stats: GatewayStats = {
-      raw_ingested: 600,
-      normalized_published: 600,
-      derived_seen: 600,
-      losant_forwarded: 0,
-      losant_withheld_airgapped: 600,
-      losant_connected: false,
-      site: "fab-1",
-      line: "etch-bay-A",
-    };
-    render(<GovernancePanel stats={stats} />);
+  const stats: GatewayStats = {
+    raw_ingested: 600,
+    normalized_published: 600,
+    buffered: 0,
+    buffer_depth: 0,
+    derived_seen: 600,
+    losant_forwarded: 0,
+    losant_withheld_airgapped: 600,
+    losant_connected: false,
+    site: "fab-1",
+    line: "etch-bay-A",
+  };
+
+  it("shows the air-gapped ledger, outage control, and egress inspector", () => {
+    const onToggle = vi.fn();
+    render(
+      <GovernancePanel
+        stats={stats}
+        outage={false}
+        onToggleOutage={onToggle}
+        egressSample={{ tool_id: "etch-03", health: 41.2, state: "WARNING" }}
+      />,
+    );
     expect(screen.getByText(/Governance boundary — fab-1/)).toBeInTheDocument();
     expect(screen.getByText("withheld (air-gapped)")).toBeInTheDocument();
     expect(screen.getByText("forwarded to cloud")).toBeInTheDocument();
-    expect(screen.getByText(/no\s+data, raw or derived, leaves this tab/)).toBeInTheDocument();
+    expect(screen.getByText(/Egress inspector/)).toBeInTheDocument();
+    expect(screen.getByText(/"tool_id": "etch-03"/)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Simulate downstream outage/ }),
+    );
+    expect(onToggle).toHaveBeenCalledOnce();
+  });
+
+  it("shows the buffering state during an outage", () => {
+    render(
+      <GovernancePanel
+        stats={{ ...stats, buffered: 120, buffer_depth: 120 }}
+        outage={true}
+        onToggleOutage={() => {}}
+        egressSample={null}
+      />,
+    );
+    expect(screen.getByText("buffering (outage)")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Restore inference tier/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/offline\s+buffering/)).toBeInTheDocument();
   });
 });
 
 describe("ArchitectureXray", () => {
-  it("maps every browser tier to a kit tier and a production counterpart", () => {
+  it("maps every browser tier to a kit tier, production counterpart, and source", () => {
     render(<ArchitectureXray />);
     expect(screen.getByText(/SUSE Industrial Edge \(Losant\)/)).toBeInTheDocument();
-    expect(screen.getByText(/SUSE AI/)).toBeInTheDocument();
+    expect(screen.getAllByText(/SUSE AI/).length).toBeGreaterThan(0);
     expect(screen.getByText(/SL Micro \+ K3s\/RKE2/)).toBeInTheDocument();
+    // Study map: source files for the model port and the AI stand-in.
+    expect(screen.getByText(/health-model\.ts/)).toBeInTheDocument();
+    expect(screen.getByText(/_fleet_context/)).toBeInTheDocument();
+  });
+});
+
+describe("FabAssistant", () => {
+  it("sends the derived fleet with the question and renders the reply", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ available: true, reply: "Check etch-03 first." }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { FabAssistant } = await import("@/components/demo/FabAssistant");
+    render(
+      <FabAssistant
+        getFleet={() => [
+          {
+            tool_id: "etch-03",
+            health: 40,
+            state: "WARNING",
+            rul_frames: 12,
+            warming: false,
+            top_contributors: [],
+          },
+        ]}
+      />,
+    );
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "who first?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Ask" }));
+    expect(await screen.findByText("Check etch-03 first.")).toBeInTheDocument();
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.fleet[0].tool_id).toBe("etch-03");
+    expect(body.messages).toEqual([{ role: "user", content: "who first?" }]);
+    vi.unstubAllGlobals();
   });
 });
 
