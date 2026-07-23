@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { KitCard } from "@/components/KitCard";
 import { getProofKits } from "@/lib/data";
 
@@ -19,6 +20,19 @@ export default async function HomePage() {
           &quot;make up&quot;s on a fresh cluster before it ships.
         </p>
       </div>
+      <Link
+        href="/demo"
+        className="block rounded-lg border border-black/10 p-5 transition hover:border-black/30 dark:border-white/10 dark:hover:border-white/30"
+      >
+        <h3 className="font-medium">
+          Try it now — live predictive-maintenance simulation
+        </h3>
+        <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+          The kit&apos;s SPC model ported to TypeScript, running in your
+          browser on synthetic fab telemetry. Inject a fault, watch the model
+          catch it. No signup, nothing leaves the tab.
+        </p>
+      </Link>
       {kits.length === 0 ? (
         <p className="text-sm text-black/60 dark:text-white/60">
           No proof kits yet.

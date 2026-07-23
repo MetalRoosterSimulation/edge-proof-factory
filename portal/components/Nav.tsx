@@ -11,6 +11,9 @@ export function Nav() {
           <Link href="/" className="hover:underline">
             Proof kits
           </Link>
+          <Link href="/demo" className="hover:underline">
+            Live simulation
+          </Link>
           <Link href="/ledger" className="hover:underline">
             Build ledger
           </Link>

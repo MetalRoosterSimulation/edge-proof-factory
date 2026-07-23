@@ -60,7 +60,10 @@ export class Gateway {
   /** See a derived verdict at the egress point. Only these fields would ever
    * leave the edge; with no platform connection they are withheld.
    * (Port of gateway.py's _forward_derived.) */
-  seeDerived(_verdict: Verdict): void {
+  seeDerived(verdict: Verdict): void {
+    // Air-gapped: the verdict is counted, never sent. (A Losant-connected
+    // mode would forward derivedFields(verdict) here, as gateway.py does.)
+    void verdict;
     this.stats.derived_seen += 1;
     this.stats.losant_withheld_airgapped += 1;
   }

@@ -111,7 +111,7 @@ export class ToolHealthModel {
   readonly warmup: number;
   frames = 0;
   private base = new Map<string, Welford>();
-  private k = SENSORS.length; // active sensor count, set at freeze
+  private k: number = SENSORS.length; // active sensor count, set at freeze
   private mFast: number = SENSORS.length;
   private mSlow: number = SENSORS.length;
   private slowHist: number[] = []; // bounded to SLOPE_WINDOW
