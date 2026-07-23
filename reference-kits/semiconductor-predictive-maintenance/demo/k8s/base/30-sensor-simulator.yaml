@@ -1,0 +1,27 @@
+# sensor-simulator — synthetic fab OT telemetry. Stands in for PLC/OPC UA/Modbus
+# device feeds; publishes raw frames the gateway-edge-agent ingests.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-simulator
+  namespace: fab-edge
+  labels: { app: sensor-simulator, tier: ot-devices }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: sensor-simulator } }
+  template:
+    metadata:
+      labels: { app: sensor-simulator, tier: ot-devices }
+    spec:
+      containers:
+        - name: sensor-simulator
+          image: edge-proof/sensor-simulator:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - { name: MQTT_HOST, value: mosquitto }
+            - { name: MQTT_PORT, value: "1883" }
+            - { name: N_TOOLS, value: "6" }
+            - { name: INTERVAL_MS, value: "1000" }
+          resources:
+            requests: { cpu: "25m", memory: "48Mi" }
+            limits: { cpu: "250m", memory: "128Mi" }

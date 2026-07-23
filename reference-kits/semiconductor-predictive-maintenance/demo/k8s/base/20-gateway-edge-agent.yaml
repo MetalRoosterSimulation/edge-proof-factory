@@ -1,0 +1,55 @@
+# gateway-edge-agent — the Losant Gateway Edge Agent tier (SUSE Industrial Edge).
+# Ingests raw OT telemetry, normalizes + offline-buffers, republishes for
+# inference, and is the single governed egress point to the Losant platform.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-edge-agent
+  namespace: fab-edge
+  labels: { app: gateway-edge-agent, tier: edge-gateway }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: gateway-edge-agent } }
+  template:
+    metadata:
+      labels: { app: gateway-edge-agent, tier: edge-gateway }
+    spec:
+      containers:
+        - name: gateway-edge-agent
+          image: edge-proof/gateway-edge-agent:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { containerPort: 8081, name: http }
+          env:
+            - { name: MQTT_HOST, value: mosquitto }
+            - { name: MQTT_PORT, value: "1883" }
+            - { name: SITE, value: "fab-1" }
+            - { name: LINE, value: "etch-bay-A" }
+            # Losant platform egress is OFF unless these are supplied. The
+            # `make demo-losant` profile fills them from the losant-credentials
+            # Secret. Empty here == air-gapped / sovereign mode.
+            - name: LOSANT_DEVICE_ID
+              valueFrom:
+                secretKeyRef: { name: losant-credentials, key: device_id, optional: true }
+            - name: LOSANT_ACCESS_KEY
+              valueFrom:
+                secretKeyRef: { name: losant-credentials, key: access_key, optional: true }
+            - name: LOSANT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef: { name: losant-credentials, key: access_secret, optional: true }
+          resources:
+            requests: { cpu: "25m", memory: "48Mi" }
+            limits: { cpu: "300m", memory: "160Mi" }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8081 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-edge-agent
+  namespace: fab-edge
+spec:
+  selector: { app: gateway-edge-agent }
+  ports: [{ port: 8081, targetPort: 8081, name: http }]

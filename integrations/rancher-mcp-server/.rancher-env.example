@@ -1,0 +1,10 @@
+RANCHER_URL=https://your-rancher-host:8443
+RANCHER_INSECURE_TLS=true
+
+# --- token: use EITHER form ---
+# A) the single combined "Bearer Token" field from the API-key dialog (preferred):
+RANCHER_TOKEN=token-xxxxx:secretxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#
+# B) or the two fields separately (the tooling joins them and adds token- if missing):
+# RANCHER_ACCESS_KEY=token-xxxxx
+# RANCHER_SECRET_KEY=secretxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

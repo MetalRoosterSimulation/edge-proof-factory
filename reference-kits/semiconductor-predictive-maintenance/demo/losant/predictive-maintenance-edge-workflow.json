@@ -1,0 +1,51 @@
+{
+  "_comment": "SCAFFOLD Losant Edge Workflow export — import into a Losant Application and finish wiring per predictive-maintenance-edge-workflow.md. Broker addresses/device mappings are environment-specific.",
+  "name": "predictive-maintenance-edge",
+  "flowClass": "edge",
+  "enabled": true,
+  "nodes": [
+    {
+      "id": "trigger-raw",
+      "type": "mqttIn",
+      "meta": { "name": "Ingest raw OT telemetry" },
+      "config": { "topic": "fab-devices/+/raw" }
+    },
+    {
+      "id": "normalize",
+      "type": "function",
+      "meta": { "name": "Normalize + tag (relay only)" },
+      "config": {
+        "code": "payload.working.frame = { tool_id: payload.working.tool_id, site: 'fab-1', line: 'etch-bay-A', ts: payload.working.ts, sensors: payload.working.sensors, gateway: 'losant-gea' };"
+      }
+    },
+    {
+      "id": "publish-normalized",
+      "type": "mqttOut",
+      "meta": { "name": "Forward to inference" },
+      "config": { "topic": "fab/{{working.tool_id}}/telemetry", "payloadPath": "working.frame" }
+    },
+    {
+      "id": "trigger-health",
+      "type": "mqttIn",
+      "meta": { "name": "Receive derived health" },
+      "config": { "topic": "fab/+/health" }
+    },
+    {
+      "id": "device-state",
+      "type": "deviceState",
+      "meta": { "name": "Governed egress: derived scores only" },
+      "config": {
+        "attributes": [
+          { "attribute": "health", "valuePath": "working.health" },
+          { "attribute": "state_num", "valuePath": "working.state_num" },
+          { "attribute": "rul_frames", "valuePath": "working.rul_frames" }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    { "from": "trigger-raw", "to": "normalize" },
+    { "from": "normalize", "to": "publish-normalized" },
+    { "from": "trigger-health", "to": "device-state" }
+  ]
+}

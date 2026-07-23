@@ -1,0 +1,20 @@
+{
+  "name": "rancher-mcp-server",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for SUSE Rancher Prime — lets an AI assistant see and act on your Rancher fleet (clusters, nodes, workloads) and deploy the Edge Proof Kit via Fleet GitOps.",
+  "type": "module",
+  "bin": {
+    "rancher-mcp-server": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "selftest": "RANCHER_MOCK=1 node src/selftest.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

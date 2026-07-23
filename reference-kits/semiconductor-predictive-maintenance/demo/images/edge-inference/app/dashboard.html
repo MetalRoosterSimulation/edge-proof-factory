@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fab Edge — Predictive Maintenance</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#131a22; --panel2:#0f161d; --border:#1f2a35;
+    --ink:#e6edf3; --muted:#8b98a5; --accent:#3ba7ff;
+    --healthy:#29c26b; --watch:#e0b83a; --warning:#f08a24; --critical:#ef4d4d;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#12202c 0%,var(--bg) 55%);
+    color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+    padding:16px 24px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(19,26,34,.9),rgba(19,26,34,.5));
+    position:sticky;top:0;backdrop-filter:blur(6px);z-index:5}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand h1{margin:0;font-size:17px;letter-spacing:.2px}
+  .brand small{color:var(--muted);font-size:12px}
+  .spacer{flex:1}
+  .stat{display:flex;flex-direction:column;align-items:flex-end}
+  .stat b{font-family:var(--mono);font-size:18px}
+  .stat span{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .chips{display:flex;gap:8px}
+  .chip{font-family:var(--mono);font-size:12px;padding:4px 10px;border-radius:999px;
+    border:1px solid var(--border);display:flex;gap:6px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .c-healthy{color:var(--healthy)} .bg-healthy{background:var(--healthy)}
+  .c-watch{color:var(--watch)} .bg-watch{background:var(--watch)}
+  .c-warning{color:var(--warning)} .bg-warning{background:var(--warning)}
+  .c-critical{color:var(--critical)} .bg-critical{background:var(--critical)}
+  main{padding:22px 24px 60px}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--border);border-radius:14px;padding:16px 16px 12px;
+    position:relative;overflow:hidden;transition:border-color .2s,transform .1s}
+  .card:hover{border-color:#2c3d4d;transform:translateY(-1px)}
+  .card .edge{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .card .top{display:flex;justify-content:space-between;align-items:baseline}
+  .tool{font-family:var(--mono);font-size:14px;color:var(--muted)}
+  .state{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+  .health{display:flex;align-items:baseline;gap:6px;margin:6px 0 2px}
+  .health b{font-family:var(--mono);font-size:40px;line-height:1;font-weight:600}
+  .health span{color:var(--muted);font-size:13px}
+  .spark{width:100%;height:34px;display:block;margin:6px 0 8px}
+  .rul{font-size:12px;color:var(--muted);font-family:var(--mono);min-height:16px}
+  .rul b{color:var(--ink)}
+  .contribs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .contribs .c{font-family:var(--mono);font-size:11px;color:var(--muted);
+    border:1px solid var(--border);border-radius:6px;padding:2px 7px}
+  .warm{color:var(--muted);font-size:12px;font-family:var(--mono)}
+  footer{color:var(--muted);font-size:12px;padding:16px 24px;border-top:1px solid var(--border)}
+  footer code{color:var(--accent)}
+  .pulse{animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Fab Edge · Predictive Maintenance</h1>
+    <small>On-prem inference — telemetry never leaves the fab · reference MVP</small>
+  </div>
+  <div class="spacer"></div>
+  <div class="chips" id="tally"></div>
+  <div class="stat"><b id="frames">–</b><span>frames scored</span></div>
+  <div class="stat"><b id="uptime">–</b><span>uptime</span></div>
+  <div class="stat"><b class="c-healthy pulse" id="live">● live</b><span>2s poll</span></div>
+</header>
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+<footer>
+  Reference MVP — the open stack here maps 1:1 to the supported SUSE stack:
+  MQTT&nbsp;→&nbsp;<code>SUSE Industrial Edge</code> · k3s&nbsp;→&nbsp;<code>SUSE Edge (SL Micro + K3s/RKE2)</code> ·
+  this inference tier&nbsp;→&nbsp;<code>SUSE AI</code> · policy&nbsp;→&nbsp;<code>SUSE Security (NeuVector)</code>.
+  See the hand-off kit.
+</footer>
+<script>
+const CLASS={HEALTHY:'healthy',WATCH:'watch',WARNING:'warning',CRITICAL:'critical'};
+const hist={};        // tool -> [health,...] client-side sparkline buffer
+const MAXPTS=60;
+
+function fmtUptime(s){
+  if(s<60)return s+'s'; if(s<3600)return Math.floor(s/60)+'m '+(s%60)+'s';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+}
+function sparkline(vals){
+  if(!vals||vals.length<2)return '';
+  const w=248,h=34,n=vals.length,min=0,max=100;
+  const pts=vals.map((v,i)=>{
+    const x=(i/(n-1))*w, y=h-((v-min)/(max-min))*h;
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  const last=vals[vals.length-1];
+  const col=last>=85?'var(--healthy)':last>=65?'var(--watch)':last>=40?'var(--warning)':'var(--critical)';
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'
+    +'<polyline fill="none" stroke="'+col+'" stroke-width="1.8" points="'+pts+'"/>'
+    +'</svg>';
+}
+function card(v){
+  const cl=CLASS[v.state]||'healthy';
+  push(v.tool_id, v.warming?100:v.health);
+  const rul = v.warming ? '<span class="warm">baseline learning…</span>'
+    : (v.rul_frames==null
+        ? 'forecast: <b>nominal</b>'
+        : 'forecast to critical: <b>~'+v.rul_frames+' cycles</b>');
+  const contribs = (v.top_contributors||[]).map(c=>
+     '<span class="c">'+c.sensor.replace(/_/g,' ')+' <b class="c-'+cl+'">z='+c.z+'</b></span>').join('');
+  return ''
+   +'<div class="card">'
+   +'<div class="edge bg-'+cl+'"></div>'
+   +'<div class="top"><span class="tool">'+v.tool_id+'</span>'
+   +'<span class="state c-'+cl+'">'+(v.warming?'warmup':v.state)+'</span></div>'
+   +'<div class="health"><b class="c-'+cl+'">'+(v.warming?'—':v.health.toFixed(0))+'</b><span>/100 health</span></div>'
+   +sparkline(hist[v.tool_id])
+   +'<div class="rul">'+rul+'</div>'
+   +'<div class="contribs">'+contribs+'</div>'
+   +'</div>';
+}
+function push(id,val){ (hist[id]=hist[id]||[]).push(val); if(hist[id].length>MAXPTS)hist[id].shift(); }
+function tally(counts){
+  const order=[['CRITICAL','critical'],['WARNING','warning'],['WATCH','watch'],['HEALTHY','healthy']];
+  return order.filter(([k])=>counts[k]).map(([k,c])=>
+    '<span class="chip"><span class="dot bg-'+c+'"></span>'+(counts[k]||0)+' '+k.toLowerCase()+'</span>').join('');
+}
+async function tick(){
+  try{
+    const r=await fetch('/api/health',{cache:'no-store'});
+    const d=await r.json();
+    document.getElementById('frames').textContent=d.frames_processed.toLocaleString();
+    document.getElementById('uptime').textContent=fmtUptime(d.uptime_s);
+    document.getElementById('tally').innerHTML=tally(d.counts);
+    document.getElementById('grid').innerHTML=d.tools.map(card).join('');
+    document.getElementById('live').classList.add('pulse');
+  }catch(e){
+    document.getElementById('live').textContent='● reconnecting';
+  }
+}
+tick(); setInterval(tick,2000);
+</script>
+</body>
+</html>

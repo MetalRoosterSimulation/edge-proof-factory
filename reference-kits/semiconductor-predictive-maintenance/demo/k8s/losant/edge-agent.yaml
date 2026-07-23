@@ -1,0 +1,37 @@
+# The genuine Losant Gateway Edge Agent (SUSE Industrial Edge). Drop-in for the
+# demo gateway-edge-agent tier once you have a Losant Application + the imported
+# predictive-maintenance Edge Workflow + the losant-credentials Secret.
+#
+# The agent pulls its Edge Workflow from the Losant platform on connect and runs
+# it locally (offline-capable). Config is provided via env from the Secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: losant-edge-agent
+  namespace: fab-edge
+  labels: { app: losant-edge-agent, tier: edge-gateway }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: losant-edge-agent } }
+  template:
+    metadata:
+      labels: { app: losant-edge-agent, tier: edge-gateway }
+    spec:
+      containers:
+        - name: edge-agent
+          image: losant/edge-agent:2.4.1-alpine
+          env:
+            - name: DEVICE_ID
+              valueFrom: { secretKeyRef: { name: losant-credentials, key: LOSANT_DEVICE_ID } }
+            - name: ACCESS_KEY
+              valueFrom: { secretKeyRef: { name: losant-credentials, key: LOSANT_ACCESS_KEY } }
+            - name: ACCESS_SECRET
+              valueFrom: { secretKeyRef: { name: losant-credentials, key: LOSANT_ACCESS_SECRET } }
+          resources:
+            requests: { cpu: "50m", memory: "96Mi" }
+            limits: { cpu: "500m", memory: "256Mi" }
+          volumeMounts:
+            - { name: store, mountPath: /data }
+      volumes:
+        - name: store
+          emptyDir: {}

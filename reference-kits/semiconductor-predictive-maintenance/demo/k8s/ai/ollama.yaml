@@ -1,0 +1,70 @@
+# Ollama — local LLM inference engine. This is the exact engine SUSE AI ships
+# (from the SUSE Application Collection). Here it runs CPU-only with a tiny model
+# so it fits a laptop; production SUSE AI runs it on a GPU node (see handoff kit).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: fab-edge
+  labels: { app: ollama, tier: ai }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: ollama } }
+  template:
+    metadata:
+      labels: { app: ollama, tier: ai }
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports: [{ containerPort: 11434, name: http }]
+          env:
+            - { name: OLLAMA_HOST, value: "0.0.0.0" }
+          resources:
+            requests: { cpu: "250m", memory: "1Gi" }
+            limits: { cpu: "2", memory: "3Gi" }
+          volumeMounts:
+            - { name: models, mountPath: /root/.ollama }
+          readinessProbe:
+            httpGet: { path: /, port: 11434 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: models
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: fab-edge
+spec:
+  selector: { app: ollama }
+  ports: [{ port: 11434, targetPort: 11434, name: http }]
+---
+# Pull a tiny model once Ollama is up, so `make ai` is self-contained.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ollama-pull-model
+  namespace: fab-edge
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels: { tier: ai }
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: pull
+          image: ollama/ollama:latest
+          env:
+            - { name: OLLAMA_HOST, value: "ollama:11434" }
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              for i in $(seq 1 30); do
+                if ollama list >/dev/null 2>&1; then break; fi
+                echo "waiting for ollama..."; sleep 5;
+              done
+              ollama pull qwen2.5:0.5b

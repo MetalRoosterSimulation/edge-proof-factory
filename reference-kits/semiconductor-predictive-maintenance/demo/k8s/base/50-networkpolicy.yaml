@@ -1,0 +1,46 @@
+# Defense-in-depth for the data-sovereignty story: at the network layer, the fab
+# namespace cannot send traffic off-node. Only DNS and intra-namespace traffic are
+# allowed to leave a pod — so even if an app tried, raw telemetry has no egress
+# path out of the fab. Enforced by k3s's built-in NetworkPolicy controller.
+#
+# Maps to SUSE Security (NeuVector) in production, which adds inline L7 enforcement
+# on top of this L3/L4 policy. When the Losant platform profile is enabled, add an
+# egress allow for the gateway-edge-agent to the Losant broker (see k8s/losant/).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: fab-edge
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress: []
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: fab-edge
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: kube-system }
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  namespace: fab-edge
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: fab-edge }

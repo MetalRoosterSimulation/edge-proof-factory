@@ -1,0 +1,14 @@
+# secrets — never commit
+**/.rancher-env
+**/*credentials.env
+!**/*credentials.env.example
+
+# node
+integrations/**/node_modules/
+
+# python
+**/__pycache__/
+**/*.pyc
+
+# local kube
+**/kubeconfig

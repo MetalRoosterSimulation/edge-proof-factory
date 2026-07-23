@@ -1,0 +1,54 @@
+# Local MQTT broker — the on-prem message bus. In production this is the broker
+# embedded in the Losant Gateway Edge Agent / SUSE Industrial Edge.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: fab-edge
+data:
+  mosquitto.conf: |
+    listener 1883 0.0.0.0
+    allow_anonymous true
+    persistence false
+    log_dest stdout
+    log_type warning
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: fab-edge
+  labels: { app: mosquitto, tier: bus }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: mosquitto } }
+  template:
+    metadata:
+      labels: { app: mosquitto, tier: bus }
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:2.0
+          args: ["mosquitto", "-c", "/mosquitto/config/mosquitto.conf"]
+          ports: [{ containerPort: 1883, name: mqtt }]
+          resources:
+            requests: { cpu: "25m", memory: "32Mi" }
+            limits: { cpu: "250m", memory: "128Mi" }
+          volumeMounts:
+            - { name: config, mountPath: /mosquitto/config }
+          readinessProbe:
+            tcpSocket: { port: 1883 }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: config
+          configMap: { name: mosquitto-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+  namespace: fab-edge
+spec:
+  selector: { app: mosquitto }
+  ports: [{ port: 1883, targetPort: 1883, name: mqtt }]

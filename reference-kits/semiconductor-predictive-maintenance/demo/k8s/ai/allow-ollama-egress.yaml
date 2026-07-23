@@ -1,0 +1,16 @@
+# The base demo denies all egress (data sovereignty). The AI profile needs the
+# model-fetch pods to reach a model registry, so it opens a controlled egress path
+# for tier=ai pods only. In production this is either a controlled egress rule in
+# SUSE Security (NeuVector) or, for an air-gapped fab, a mirror of the models via
+# the SUSE Application Collection (no egress at all). Everything else stays denied.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-egress
+  namespace: fab-edge
+spec:
+  podSelector:
+    matchLabels: { tier: ai }
+  policyTypes: [Egress]
+  egress:
+    - {}   # tier=ai pods may egress (model fetch); all other pods stay denied
