@@ -8,8 +8,22 @@ clone the repo and read markdown.
 **This is a presentation layer, not a replacement.** The factory's actual
 deliverable — a runnable k3s/Rancher demo (`../reference-kits/*/demo`) — is
 unchanged and cannot run on Vercel (Vercel is serverless; it cannot host a
-persistent Kubernetes cluster). The portal only *displays* what the demo and
-hand-off docs already prove.
+persistent Kubernetes cluster). The portal *displays* what the demo and
+hand-off docs already prove, plus one interactive layer:
+
+**`/demo` — an interactive simulation of the Proof Kit.** The kit's whole
+pipeline (sensor simulator → gateway governance tier → SPC health model) is
+ported to TypeScript in `lib/demo/` and runs entirely in the visitor's
+browser — per-visitor sandbox, fault injection, live health/RUL, governance
+counters. It is labeled a *simulation* on the page and here: it proves the
+MODEL (parity with the Python model is enforced by golden vectors recorded
+from the real kit — `scripts/generate-golden-vectors.py`,
+`tests/demo/golden-parity.test.ts`), not the SUSE stack. k3s, MQTT, the real
+GEA tier, and Rancher/Fleet run only in the kit. The Python model
+(`.../edge-inference/app/health_model.py`) is the source of truth; if either
+side changes, regenerate the vectors and re-run the parity suite. The demo
+route uses no Supabase at runtime, so it stays live even if the content
+backend's free-tier project pauses.
 
 ## Stack
 

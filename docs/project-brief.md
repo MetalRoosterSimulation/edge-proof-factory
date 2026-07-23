@@ -46,3 +46,7 @@ as a first-class running tier and Rancher wired via an MCP server.
 - One reference kit is fully built; additional kits are produced on demand via
   `RUN.md`. The reusable machine (docs, templates, validator, Rancher MCP) is in
   place so a new kit is mostly assembly, not invention.
+- The portal's `/demo` page is a **labeled presentation/reach layer**, not a
+  second deliverable class: an in-browser TypeScript simulation of the kit's
+  pipeline (golden-parity-tested against the Python model) whose job is to
+  route visitors to the kit. It proves the model, not the SUSE stack.

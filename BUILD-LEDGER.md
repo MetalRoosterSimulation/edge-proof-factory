@@ -237,5 +237,78 @@ the whole repo. `.mcp.json` lives at `~/.mcp.json` (root), not
 narrow it to `project_ref=vpdtwiyvatpwzkapvmcl` once no more account-level
 Supabase operations are needed here.
 
+## Phase 11 — the working demo ON Vercel: /demo in-browser simulation (2026-07-23)
+User mandate: Phase 10 put the *documentation* on Vercel; now the *working
+demo* itself must run there, "even if things need to change to make it work
+in Vercel" — preceded by a mandatory research swarm.
+
+**Research swarm (5 parallel agents, before any code):**
+- *Vercel ground truth:* no always-on compute primitive exists in 2026 —
+  Hobby functions hard-cap at 300s (Fluid), Hobby cron is once-per-DAY,
+  WebSockets die at maxDuration, Sandbox caps at 45min; a server-driven 1Hz
+  feed would also exceed Supabase free-tier Realtime quota (~2.6M msgs/mo vs
+  2M) and dies when a free project auto-pauses after 1 idle week. Client-side
+  per-visitor simulation is the only zero-babysitting design. (Also flagged:
+  Hobby is non-commercial by ToS — consider Vercel Pro for partner-facing use.)
+- *Competitors:* the PdM/industrial-AI space is almost entirely sales-gated
+  (Augury, C3, Sight Machine, SymphonyAI, PTC, Siemens: no public demo at
+  all; SUSE itself: none). Best-in-class is adjacent: Grafana Play's
+  zero-signup live dashboards. NOBODY offers a no-signup, live, visitor-
+  fault-injectable, math-exposed PdM demo — that exact combination is the gap.
+- *Demo patterns:* instant-on (<10s to value), fault injection as the hero
+  interaction, visible cause→detection cascade, architecture x-ray mapping
+  demo→production (the SI-seller-specific need), shareable URL state,
+  kit-first CTAs.
+- *Portal contract:* Tailwind v4 CSS-first tokens, dark: variant pairing,
+  server page + 'use client' child for metadata, no route handlers unless
+  necessary, test/lint/build conventions.
+- *Adversarial alignment (all recommendations adopted):* (1) it must be
+  named an interactive SIMULATION of the Proof Kit — it proves the MODEL,
+  not the SUSE stack (no k3s/MQTT/GEA/Rancher in a browser); README/CLAUDE/
+  project-brief scope claims updated in the same change. (2) Parity =
+  golden vectors recorded from the REAL Python model, tolerance-based;
+  RNG stream parity explicitly renounced (TS simulator is statistically
+  equivalent, not stream-identical). (3) CUT the planned serverless LLM
+  explain route — a hosted LLM would invert the kit's on-prem story (Phase
+  9); replaced with deterministic fault-signature matching from the model's
+  own attribution. (4) No Supabase in the demo runtime (free-tier pause
+  immunity); content backend only. (5) Pause when the tab is hidden — the
+  model's time base is frames, so wall-clock catch-up would lie; this also
+  removed the need for a Web Worker (the riskiest Turbopack unknown).
+
+**Built (portal/, three commits):**
+- `lib/demo/` — faithful TS port: simulator (BASE/FAULTS verbatim, seeded
+  mulberry32 + Box–Muller), GEA gateway tier (air-gapped counters), SPC
+  health model (Welford freeze, clipped z, Hotelling T², fast/slow EWMA,
+  banker's rounding to match Python, least-squares RUL), DemoEngine (the
+  MQTT wiring as an in-tab tier contract), deterministic diagnose().
+- `scripts/generate-golden-vectors.py` — drives the REAL Python model +
+  simulator drift tables (paho stubbed) → 590 steps / 6 scenarios (healthy,
+  all 3 faults to CRITICAL, missing sensor, zero-variance channel) →
+  `tests/demo/golden-vectors.json`; the vitest parity suite replays every
+  frame and compares every verdict field (health ±0.011, anomaly ±2e-4,
+  RUL ±1, states, attribution). Passed on the first run.
+- `/demo` — static route, all live behavior client-side: pre-warmed 6-tool
+  fleet at 4 cycles/s (badged "accelerated · frames, not seconds"), seeded
+  auto-degradation on etch-03 (the kit's AUTO_FAULT_TOOL, disclosed in
+  copy), inject/heal per tool, sparklines, RUL, z-score attribution chips,
+  signature-match diagnosis (with "the kit answers this on-prem via SUSE
+  AI" note), governance ledger (raw ingested / derived seen / withheld /
+  forwarded=0 + honest caption: the kit's boundary is a network boundary
+  proven live in Phase 2; here nothing leaves the tab at all), architecture
+  x-ray table (browser ↔ kit tier ↔ SUSE production, sourced from the
+  component map), ?seed= URL state + copy-link + reseed, pause-when-hidden
+  notice, kit-first CTAs (kit page, HOW-TO-RUN-THIS-DEMO.md, repo).
+- Nav "Live simulation" + home-page callout card.
+
+**Verified:** 61/61 vitest (28 new demo tests incl. full golden parity),
+eslint clean, `next build` clean with /demo prerendered static. Python kit
+tests still 9/9; kit directory byte-untouched.
+
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
+- Vercel plan: edge-ai-demo currently rides the account's existing plan; if
+  it is Hobby, partner-facing (commercial) use sits outside Hobby's
+  non-commercial fair-use terms — decide whether to move the project to a
+  Pro team (~$20/mo, also removes the 300s/daily-cron caps if a
+  server-assisted mode is ever wanted). User decision.

@@ -38,7 +38,10 @@ consumes their output (use case, architecture, economics) and produces the proof
 - `portal/` — the Vercel + Supabase partner portal: a read-only Next.js app
   presenting the proof kit catalog, handoff docs, and this ledger as a live
   web page. It does not run the k3s demo (can't — Vercel is serverless); it
-  displays what the demo already proved. See `portal/README.md`.
+  displays what the demo already proved, and serves `/demo` — an interactive
+  in-browser SIMULATION of the kit's pipeline (TypeScript port in
+  `portal/lib/demo/`, golden-parity-tested against the Python model, labeled
+  a simulation on-page; the kit stays the deliverable). See `portal/README.md`.
 
 ## To produce a new Proof Kit
 Follow `RUN.md`. In short: pull the use case + architecture from the sibling
