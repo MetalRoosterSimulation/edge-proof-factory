@@ -20,9 +20,17 @@ spec:
           env:
             - { name: OLLAMA_BASE_URL, value: "http://ollama:11434" }
             - { name: WEBUI_AUTH, value: "false" }   # demo only
+            # Keep it lean for the edge demo: the default RAG stack downloads a
+            # sentence-transformers embedding model from HuggingFace at startup
+            # and OOMs a 1Gi pod. Route embeddings through Ollama and skip that
+            # download so the pod starts fast and small.
+            - { name: RAG_EMBEDDING_ENGINE, value: "ollama" }
+            - { name: ENABLE_OLLAMA_API, value: "true" }
+            - { name: HF_HUB_OFFLINE, value: "1" }
+            - { name: WEBUI_NAME, value: "Fab Edge · SUSE AI" }
           resources:
-            requests: { cpu: "100m", memory: "256Mi" }
-            limits: { cpu: "1", memory: "1Gi" }
+            requests: { cpu: "100m", memory: "384Mi" }
+            limits: { cpu: "1", memory: "2Gi" }
           volumeMounts:
             - { name: data, mountPath: /app/backend/data }
       volumes:
