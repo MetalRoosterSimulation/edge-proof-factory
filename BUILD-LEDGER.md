@@ -122,8 +122,30 @@ pre-Fleet age (3m16s = the `make up` pods) and gained `managed-by: Helm` +
 `objectset.rio.cattle.io/hash`. No namespace deletion, no force-sync needed — the
 exact dance that failed twice before. Dashboard 200, fleet healthy.
 
+## Phase 9 — SUSE AI tier under Fleet + explain endpoint (done 2026-07-23)
+User hit `/api/explain` -> connection refused: the AI tier wasn't up. Root cause of
+the harder failure: pointing the Fleet GitRepo at `k8s/ai` broke because that
+overlay's kustomization referenced `../base`, and Fleet scopes each GitRepo path to
+its own dir (bundle) — so `../base` "doesn't exist", and Fleet had already torn down
+the base bundle (demo went down; namespace deleted). Fixes (all pushed):
+- reverted Fleet to `k8s/base` to restore the demo (1/1) immediately;
+- made `k8s/ai` SELF-CONTAINED + additive (ollama + open-webui + egress only, its
+  own Helm release `edge-proof-ai`, no `../base`, no cross-bundle patch);
+- moved `OLLAMA_URL`/`OLLAMA_MODEL` into base edge-inference (harmless when AI absent);
+- `/api/explain` now returns a clear "AI tier not reachable, run make ai" note
+  (and "model still downloading" on a missing-model HTTPError) instead of a raw
+  errno — the exact confusion the user hit;
+- deploy AI under Fleet by pointing the GitRepo at BOTH `k8s/base` and `k8s/ai`.
+Result: GitRepo 1/1 with both bundles, edge-inference rolled with OLLAMA_URL,
+ollama + open-webui Running, model pull job Completed. **Verified live:** injected an
+rf_match_drift fault on etch-03 and `/api/explain/etch-03` returned
+`available:true` with a real qwen2.5:0.5b explanation naming the RF-reflected-power
+anomaly — on-prem, no data leaving the cluster.
+
+Fleet lesson (durable): a Fleet GitRepo path must be self-contained; kustomize
+overlays that reach up to `../base` fail. Use additive self-contained bundles with
+distinct Helm release names and list multiple `paths` instead.
+
 ## Open threads
-- Doc/script commits (Phases 7-8) are committed locally; re-run the publish helper
-  to push them (agent can't push — sandbox blocks token+GitHub). After the push,
-  re-run `wire-rancher.sh` once to prove the one-command re-import/takeOwnership flow.
+- One local commit (this ledger note) pending push — re-run the publish helper.
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
