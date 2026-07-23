@@ -20,6 +20,13 @@ spec:
           env:
             - { name: OLLAMA_BASE_URL, value: "http://ollama:11434" }
             - { name: WEBUI_AUTH, value: "false" }   # demo only
+            # Wire in the "fab-assistant" model — an OpenAI-compatible endpoint on
+            # edge-inference that grounds every chat in the LIVE fleet snapshot.
+            # Ask it "which tools are at risk and what do I do?" and it answers
+            # from real telemetry. On-prem end to end.
+            - { name: ENABLE_OPENAI_API, value: "true" }
+            - { name: OPENAI_API_BASE_URL, value: "http://edge-inference:8080/v1" }
+            - { name: OPENAI_API_KEY, value: "sk-fab-local" }
             # Keep it lean for the edge demo: the default RAG stack downloads a
             # sentence-transformers embedding model from HuggingFace at startup
             # and OOMs a 1Gi pod. Route embeddings through Ollama and skip that

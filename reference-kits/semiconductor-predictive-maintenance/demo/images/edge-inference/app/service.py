@@ -108,6 +108,44 @@ def _start_mqtt():
 
 # --- HTTP ---------------------------------------------------------------------
 _STATE_NUM = {"HEALTHY": 0, "WATCH": 1, "WARNING": 2, "CRITICAL": 3}
+FAB_MODEL_ID = "fab-assistant"
+
+
+def _fleet_context():
+    """A system prompt carrying the live fleet snapshot for the chat assistant."""
+    with _lock:
+        snap = _fleet.snapshot()
+    lines = ["You are the Fab Edge maintenance assistant for a semiconductor "
+             "plasma-etch line. Answer ONLY from the live tool data below "
+             "(health 0-100; RUL = forecast cycles to critical; z = sensor "
+             "anomaly). Be concise and specific, name the tool and the first "
+             "maintenance action. If asked about something not in the data, "
+             "say so.", "", "LIVE TOOL STATUS (worst first):"]
+    if not snap:
+        lines.append("  (tools still warming up — no verdicts yet)")
+    for v in snap:
+        if v.get("warming"):
+            lines.append("  %s: warming up (baseline learning)" % v["tool_id"])
+            continue
+        tops = ", ".join("%s z=%s" % (c["sensor"], c["z"])
+                         for c in v.get("top_contributors", [])) or "none"
+        rul = "nominal" if v.get("rul_frames") is None else \
+            ("~%d cycles" % v["rul_frames"])
+        lines.append("  %s: health %.0f/100, %s, RUL %s, top anomalies: %s"
+                     % (v["tool_id"], v["health"], v["state"], rul, tops))
+    return "\n".join(lines)
+
+
+def _openai_completion(model, text):
+    """Wrap a plain string as a non-streaming OpenAI chat completion."""
+    return {
+        "id": "chatcmpl-%d" % int(time.time() * 1000),
+        "object": "chat.completion", "created": int(time.time()),
+        "model": model,
+        "choices": [{"index": 0, "finish_reason": "stop",
+                     "message": {"role": "assistant", "content": text}}],
+        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+    }
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -140,7 +178,107 @@ class Handler(BaseHTTPRequestHandler):
             return self._api_explain(path[len("/api/explain/"):])
         if path == "/metrics":
             return self._metrics()
+        if path == "/v1/models":
+            return self._v1_models()
         return self._send(404, json.dumps({"error": "not found"}))
+
+    def do_POST(self):
+        path = self.path.split("?", 1)[0]
+        if path == "/v1/chat/completions":
+            return self._v1_chat()
+        return self._send(404, json.dumps({"error": "not found"}))
+
+    # --- OpenAI-compatible chat, grounded in the live fleet -------------------
+    # Lets Open WebUI (or any OpenAI client) talk to a "Fab Assistant" that knows
+    # the current tool health/RUL/anomalies. We inject a live-context system
+    # message, then proxy to Ollama's chat API. On-prem end to end.
+    def _v1_models(self):
+        return self._send(200, json.dumps({
+            "object": "list",
+            "data": [{"id": FAB_MODEL_ID, "object": "model", "created": 0,
+                      "owned_by": "fab-edge"}],
+        }))
+
+    def _v1_chat(self):
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            req = json.loads(self.rfile.read(length).decode("utf-8"))
+        except Exception:  # noqa: BLE001
+            return self._send(400, json.dumps({"error": "bad request"}))
+        messages = req.get("messages", [])
+        stream = bool(req.get("stream", False))
+        # Prepend the live fleet snapshot as a system message.
+        sys_msg = {"role": "system", "content": _fleet_context()}
+        ollama_msgs = [sys_msg] + [
+            m for m in messages if m.get("role") != "system"
+        ]
+        payload = json.dumps({
+            "model": OLLAMA_MODEL, "messages": ollama_msgs, "stream": stream,
+        }).encode("utf-8")
+        url = OLLAMA_URL.rstrip("/") + "/api/chat"
+        if not OLLAMA_URL:
+            return self._send(503, json.dumps({
+                "error": "AI tier not deployed — run make ai"}))
+        try:
+            r = urllib.request.urlopen(
+                urllib.request.Request(url, data=payload,
+                                       headers={"Content-Type": "application/json"}),
+                timeout=120)
+        except Exception as e:  # noqa: BLE001
+            return self._send(200, json.dumps(_openai_completion(
+                FAB_MODEL_ID,
+                "The on-prem model is not reachable (%s). Deploy the AI tier "
+                "with `make ai`." % e)))
+        if stream:
+            return self._stream_chat(r)
+        # non-streaming: read one JSON, wrap as an OpenAI completion
+        try:
+            out = json.loads(r.read().decode("utf-8"))
+            text = out.get("message", {}).get("content", "")
+        except Exception as e:  # noqa: BLE001
+            text = "error reading model response: %s" % e
+        return self._send(200, json.dumps(_openai_completion(FAB_MODEL_ID, text)))
+
+    def _stream_chat(self, resp):
+        # Relay Ollama's newline-delimited chat chunks as OpenAI SSE deltas.
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        cid = "chatcmpl-%d" % int(time.time() * 1000)
+        try:
+            for line in resp:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line.decode("utf-8"))
+                except Exception:  # noqa: BLE001
+                    continue
+                piece = obj.get("message", {}).get("content", "")
+                if piece:
+                    self._sse(cid, delta=piece)
+                if obj.get("done"):
+                    break
+            self._sse(cid, finish=True)
+            self.wfile.write(b"data: [DONE]\n\n")
+            self.wfile.flush()
+        except Exception:  # noqa: BLE001  (client disconnected)
+            pass
+
+    def _sse(self, cid, delta=None, finish=False):
+        chunk = {
+            "id": cid, "object": "chat.completion.chunk",
+            "created": int(time.time()), "model": FAB_MODEL_ID,
+            "choices": [{
+                "index": 0,
+                "delta": {} if finish else {"content": delta},
+                "finish_reason": "stop" if finish else None,
+            }],
+        }
+        self.wfile.write(("data: %s\n\n" % json.dumps(chunk)).encode("utf-8"))
+        self.wfile.flush()
 
     def _api_explain(self, tool_id):
         with _lock:
