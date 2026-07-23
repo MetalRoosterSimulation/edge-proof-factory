@@ -186,16 +186,45 @@ Vitest tests pass (data-layer query logic against an injected fake Supabase
 client, seed-data referential integrity, component rendering); `npm run
 lint` clean; `npm run build` clean.
 
-**Not done in this phase — needs the user's own login:** a hosted Supabase
-project and a Vercel project don't exist yet; provisioning them requires the
-user's account credentials, which this session doesn't have. `portal/README.md`
-has the exact steps. `.mcp.json` for `portal/` will get `vercel` +
-`supabase` server entries once those projects exist (same pattern as
-`svirt-sizing-tool/.mcp.json`) — not before, since a config referencing a
-nonexistent project is worse than no config.
+**Live, same session, once the user authenticated the MCP servers directly
+(no token ever typed in chat — Supabase via OAuth browser handshake, Vercel
+via its own connected-account OAuth):** added `vercel`/`supabase`/`github`/
+`rancher` MCP servers to a root-level `~/.mcp.json` (they'd only existed in
+per-project configs the session root couldn't see); after the user
+reconnected, `supabase` needed one explicit OAuth round-trip
+(`mcp__supabase__authenticate` → browser → `complete_authentication`),
+`vercel` connected on its own. Created a dedicated Supabase project
+**"edge-ai-demo"** (ref `vpdtwiyvatpwzkapvmcl`, us-east-1, free tier, $0/mo —
+quoted and confirmed before creating) in the org `MetalRoosterSimulation's
+Org`; applied `0001_init.sql` and the seed data via `apply_migration`/
+`execute_sql`; `get_advisors` came back with zero security findings. Deployed
+`portal/` to Vercel (project **"edge-ai-demo"**, team
+`rooneyjoseph29-9646's projects`) via the `deploy_to_vercel` MCP tool — a
+one-shot file-tree upload, not git-integrated CI, since that tool has no
+git-connect or environment-variable API; the two `NEXT_PUBLIC_SUPABASE_*`
+values (public, RLS-protected, safe to embed) were included as a plain
+`.env.production` file in the upload rather than left unset. Skipped
+`favicon.ico` and `package-lock.json` from that upload (binary/cosmetic and
+a 300 KB generated file, respectively — next actual git-integrated deploy
+will pick both up automatically). **Live and verified**, not just
+"deployed": fetched all three routes (`/`, `/ledger`,
+`/kits/semiconductor-predictive-maintenance`) directly at
+**https://edge-ai-demo.vercel.app** post-deploy and confirmed real Postgres
+data rendered in each. `get_advisors` re-checked clean after the seed.
+
+**Open thread for next session:** this is a one-shot file deploy, not
+git-integrated — every future edit needs a manual re-`deploy_to_vercel` (or a
+git-integration follow-up) until someone does the "Import Git Repository"
+step in the Vercel dashboard, which the MCP surface doesn't expose. `.mcp.json`
+now lives at `~/.mcp.json` (root), not `portal/.mcp.json` — the Supabase
+entry is intentionally unscoped (no `project_ref`) so `list_organizations`/
+`create_project` stay available; narrow it to `project_ref=vpdtwiyvatpwzkapvmcl`
+once no more account-level Supabase operations are needed here.
 
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
-- Portal (`portal/`) needs a live, dedicated Supabase project and a Vercel
-  project linked to this repo before it's reachable at a public URL — both
-  require the user's own account login. See `portal/README.md` § Deploying.
+- Portal is served via a one-shot Vercel file deploy, not git-integrated CI,
+  and has no custom domain. Durable follow-up: Import Git Repository in the
+  Vercel dashboard (root directory `portal/`) so future commits auto-deploy,
+  and add the two `NEXT_PUBLIC_SUPABASE_*` values as dashboard env vars at
+  that point.

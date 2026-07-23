@@ -101,24 +101,48 @@ see `tests/lib/data.test.ts`. This was additionally verified against a real
 local Postgres instance (`npm run db:start` + `npm run build` + `npm start`)
 before this was committed — not just unit-tested in isolation.
 
-## Deploying (hosted Supabase + Vercel)
+## Deployed
 
-Two accounts, both outside this session's reach (they need your login):
+- **Live app:** https://edge-ai-demo.vercel.app
+- **Supabase project:** `edge-ai-demo` (ref `vpdtwiyvatpwzkapvmcl`, us-east-1,
+  free tier) — a project dedicated to this portal, not shared with
+  `svirt-sizing-tool`.
+- **Vercel project:** `edge-ai-demo`, team `rooneyjoseph29-9646's projects`.
 
-1. **Supabase** — create a **new, dedicated** project (do not reuse the one
-   wired to `~/Work/svirt-sizing-tool` — different product, keep the data
-   separate). Push the schema: `npx supabase link --project-ref <ref>` then
-   `npx supabase db push`. Run `npm run db:seed:generate` then apply
-   `supabase/seed.sql` via the SQL editor (or `psql` against the pooler
-   connection string) to load the initial content.
-2. **Vercel** — `vercel link` this directory, then set
-   `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project
-   Settings → Environment Variables) to the hosted project's values (Project
-   Settings → API in Supabase), then `vercel deploy --prod`.
+Both were provisioned and deployed via their MCP servers directly (OAuth —
+no token ever typed in chat): `~/.mcp.json` (root-level, so it's visible from
+any project in this session) wires up `vercel` and `supabase`. The Supabase
+entry is intentionally unscoped (no `project_ref`) so account-level tools
+(`list_organizations`, `create_project`) stay available for future projects;
+narrow it to `?project_ref=vpdtwiyvatpwzkapvmcl` once this is the only
+Supabase project you manage from here.
 
-Once both exist, add `vercel` + `supabase` MCP servers to `.mcp.json` here
-(same pattern as `~/Work/svirt-sizing-tool/.mcp.json`) so future sessions can
-manage them directly instead of via the dashboards.
+**This deploy is a one-shot file upload** (`deploy_to_vercel`), not
+git-integrated CI — that MCP tool has no git-connect or environment-variable
+API, so the two `NEXT_PUBLIC_SUPABASE_*` values were shipped as a plain
+`.env.production` file in the upload (they're public/RLS-protected, safe to
+embed) instead of set as dashboard env vars. **Every future code change
+needs a manual re-deploy** until someone does the durable follow-up:
+
+1. In the Vercel dashboard, **Import Git Repository** and connect this
+   project to `github.com/MetalRoosterSimulation/edge-proof-factory`, root
+   directory `portal/`. This gives you auto-deploy on push, preview
+   deployments per PR, and a proper build log — none of which the MCP
+   file-upload path provides.
+2. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as
+   dashboard Environment Variables (Project Settings → Environment
+   Variables) with the values above — the git-integrated build won't have
+   the `.env.production` that was only ever part of the one-shot upload.
+
+### Doing it from scratch instead (no MCP servers connected)
+
+1. **Supabase** — create a **new, dedicated** project. Push the schema:
+   `npx supabase link --project-ref <ref>` then `npx supabase db push
+   --include-seed` (reads `supabase/seed-data.ts` via the generated
+   `seed.sql`).
+2. **Vercel** — `vercel link` this directory, set the two env vars (Project
+   Settings → Environment Variables) to the hosted project's values (Supabase
+   Project Settings → API), then `vercel deploy --prod`.
 
 ## Known upstream advisory
 

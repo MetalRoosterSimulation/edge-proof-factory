@@ -319,7 +319,7 @@ export const ledgerPhases: Omit<LedgerPhase, "id">[] = [
     title: "Factory Portal — Vercel + Supabase",
     status: "done",
     body_md:
-      "Built a read-only Next.js 16 portal (this app) that surfaces the proof kit catalog, component maps, scale-up paths, footprint specs, and this build ledger from a dedicated Supabase Postgres project, deployed to Vercel. The k3s/Rancher demo itself is unchanged and cannot run on Vercel (serverless has no persistent cluster) — the portal is a presentation layer on top, not a replacement. Schema, seed data (transcribed from the existing handoff docs and this ledger, not invented), RLS policies, and the full test suite were built and verified against a local Supabase stack before any cloud resources were requested. Research/competitor-analysis phase was explicitly dropped from scope by user direction; the portal is being built directly.",
+      "Built a read-only Next.js 16 portal (this app) that surfaces the proof kit catalog, component maps, scale-up paths, footprint specs, and this build ledger from a dedicated Supabase Postgres project, deployed to Vercel. The k3s/Rancher demo itself is unchanged and cannot run on Vercel (serverless has no persistent cluster) — the portal is a presentation layer on top, not a replacement. Schema, seed data (transcribed from the existing handoff docs and this ledger, not invented), RLS policies, and the full test suite were built and verified against a local Supabase stack before any cloud resources were requested. Research/competitor-analysis phase was explicitly dropped from scope by user direction; the portal is being built directly. Live: Supabase project \"edge-ai-demo\" (ref vpdtwiyvatpwzkapvmcl, us-east-1, free tier) provisioned via the Supabase MCP server (OAuth, no token pasted anywhere); schema + seed applied and verified (zero security advisories). Deployed to Vercel via the deploy_to_vercel MCP tool (a one-shot file upload, not git-integrated CI) at https://edge-ai-demo.vercel.app — all three routes (/, /ledger, /kits/semiconductor-predictive-maintenance) fetched directly and confirmed serving real data from the hosted project.",
     done_date: "2026-07-23",
   },
 ];
@@ -332,7 +332,7 @@ export const openThreads: Omit<OpenThread, "id" | "created_at">[] = [
   },
   {
     description:
-      "Portal needs a live Supabase project (new, dedicated — not the one shared with svirt-sizing-tool) and a Vercel project linked to this repo before it's reachable at a public URL; both require the user's own account login (see portal/README.md).",
+      "Portal is served via a one-shot Vercel file deploy (MCP deploy_to_vercel), not git-integrated CI, and has no custom domain. Recommended durable follow-up: Import Git Repository in the Vercel dashboard to connect it to github.com/MetalRoosterSimulation/edge-proof-factory (root directory portal/) so future commits auto-deploy, and add NEXT_PUBLIC_SUPABASE_URL/ANON_KEY as dashboard env vars at that point (the Vercel MCP server has no env-var API).",
     status: "open",
   },
 ];
