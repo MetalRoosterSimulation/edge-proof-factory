@@ -8,6 +8,7 @@
 #   make status    pods + live fleet snapshot
 #   make test      run the model unit tests (no cluster needed)
 #   make ai        add the SUSE AI analog profile (Ollama + Open WebUI)
+#   make security  add SUSE Security (NeuVector) with its web console
 #   make losant    connect the gateway to the Losant platform (needs creds)
 #   make down      delete the cluster
 #   make clean     delete cluster + remove built images
@@ -25,7 +26,7 @@ FAULT     ?= rf_match_drift
 KUBECTL   := kubectl -n $(NS)
 
 .PHONY: up cluster images import deploy wait open status fault heal test ai losant \
-        rancher-import down clean
+        security rancher-import down clean
 
 up: cluster images import deploy wait open
 
@@ -99,6 +100,18 @@ losant:
 	  --from-env-file=k8s/losant/losant-credentials.env --dry-run=client -o yaml | kubectl apply -f -
 	@$(KUBECTL) rollout restart deploy/gateway-edge-agent
 	@echo "Losant credentials applied — gateway will sync derived scores to the Losant platform."
+
+security:
+	@helm repo add neuvector https://neuvector.github.io/neuvector-helm/ >/dev/null 2>&1 || true
+	@helm repo update neuvector >/dev/null 2>&1 || true
+	@helm upgrade --install neuvector neuvector/core --version 2.8.13 \
+	  --namespace neuvector --create-namespace \
+	  --set k3s.enabled=true --set k3s.runtimePath=/run/k3s/containerd/containerd.sock \
+	  --set controller.replicas=1 --set controller.pvc.enabled=false \
+	  --set manager.svc.type=ClusterIP --set rbac=true
+	@echo "SUSE Security (NeuVector) deploying. Console (HTTPS) once ready:"
+	@echo "  kubectl -n neuvector port-forward svc/neuvector-service-webui 8443:8443"
+	@echo "  then open https://localhost:8443  (default login admin/admin)"
 
 rancher-import:
 	@echo "Point the Rancher MCP server at your instance, then call rancher_import_cluster."
