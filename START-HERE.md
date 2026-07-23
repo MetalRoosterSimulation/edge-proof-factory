@@ -19,6 +19,9 @@ stack, four-phase scale-up path, sourced footprints).
 
 ## See it now
 
+**New here? Read [`HOW-TO-RUN-THIS-DEMO.md`](HOW-TO-RUN-THIS-DEMO.md)** — a
+foolproof, copy-paste run guide with "what you should see" at every step.
+
 ```bash
 cd reference-kits/semiconductor-predictive-maintenance/demo
 make up            # ~2 min; opens an ops dashboard on :18080

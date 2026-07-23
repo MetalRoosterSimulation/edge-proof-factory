@@ -86,8 +86,23 @@ clusters` shows edge-mvp active, and `rancher_list_workloads c-c24cf fab-edge`
 reads all four kit deployments 1/1 through Rancher's k8s proxy. Fixed a manifestUrl
 race in the script (Rancher populates it asynchronously — now polls).
 
-## Open threads (need the user)
-- Fleet GitOps deploy (`rancher_deploy_via_fleet`): needs the kit manifests in a
-  git repo Rancher can reach; the cluster is imported/managed now, so this is the
-  optional next step (push the repo, then create the GitRepo).
+## Phase 7 — Fleet GitOps + public repo + run guide (done 2026-07-23)
+Published the factory to a public GitHub repo
+`github.com/MetalRoosterSimulation/edge-proof-factory` (committed clean — no
+secrets; `.gitignore` verified). Created a Fleet `GitRepo` (`fleet-default/
+edge-proof-kit`) targeting the imported `edge-mvp` cluster (`c-c24cf`), pointed at
+`reference-kits/semiconductor-predictive-maintenance/demo/k8s/base`. First install
+hit the expected ownership conflict (the namespace already existed from the earlier
+`kubectl apply` — Helm won't adopt: `missing key app.kubernetes.io/managed-by`);
+resolved by deleting the hand-applied `fab-edge` namespace and force-syncing. Fleet
+redeployed cleanly: **readyClusters 1/1**, pods carry `managed-by: Helm` +
+`objectset.rio.cattle.io/hash` — genuinely GitOps-owned (git push -> Fleet ->
+cluster). Added `HOW-TO-RUN-THIS-DEMO.md` (foolproof run guide). Note: GitHub
+create/push must be run by the user — the sandbox classifier blocks the agent from
+using a token file against api.github.com (`scripts/`-style helper written for the
+user to run).
+
+## Open threads
+- Doc updates after the initial push (this ledger, HOW-TO-RUN, START-HERE pointer)
+  are committed locally; re-run the publish helper to push them (agent can't push).
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
