@@ -117,22 +117,21 @@ entry is intentionally unscoped (no `project_ref`) so account-level tools
 narrow it to `?project_ref=vpdtwiyvatpwzkapvmcl` once this is the only
 Supabase project you manage from here.
 
-**This deploy is a one-shot file upload** (`deploy_to_vercel`), not
-git-integrated CI — that MCP tool has no git-connect or environment-variable
-API, so the two `NEXT_PUBLIC_SUPABASE_*` values were shipped as a plain
-`.env.production` file in the upload (they're public/RLS-protected, safe to
-embed) instead of set as dashboard env vars. **Every future code change
-needs a manual re-deploy** until someone does the durable follow-up:
+**Now git-integrated:** the Vercel project is connected to
+`github.com/MetalRoosterSimulation/edge-proof-factory` (Root Directory
+`portal`) — every push to `main` auto-deploys. `NEXT_PUBLIC_SUPABASE_URL`
+and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set as real Production+Preview
+Environment Variables (`vercel env add`), not the one-shot
+`.env.production` file the very first deploy used.
 
-1. In the Vercel dashboard, **Import Git Repository** and connect this
-   project to `github.com/MetalRoosterSimulation/edge-proof-factory`, root
-   directory `portal/`. This gives you auto-deploy on push, preview
-   deployments per PR, and a proper build log — none of which the MCP
-   file-upload path provides.
-2. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as
-   dashboard Environment Variables (Project Settings → Environment
-   Variables) with the values above — the git-integrated build won't have
-   the `.env.production` that was only ever part of the one-shot upload.
+**Gotcha if you ever reconnect this project to a repo:** Vercel does not
+retroactively build the repo's current HEAD when you change its git
+connection — it only builds on the *next* push, so you may need an empty
+trigger commit (`git commit --allow-empty`). Also confirm **Root
+Directory** is set to `portal` (Project Settings → General) if the app
+lives in a subdirectory of the connected repo, as it does here — otherwise
+the build fails with `Couldn't find any pages or app directory`, since
+Vercel looks for `app/`/`pages/` at the repo root by default.
 
 ### Doing it from scratch instead (no MCP servers connected)
 

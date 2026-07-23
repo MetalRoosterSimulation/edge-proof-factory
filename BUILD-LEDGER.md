@@ -212,19 +212,30 @@ will pick both up automatically). **Live and verified**, not just
 **https://edge-ai-demo.vercel.app** post-deploy and confirmed real Postgres
 data rendered in each. `get_advisors` re-checked clean after the seed.
 
-**Open thread for next session:** this is a one-shot file deploy, not
-git-integrated — every future edit needs a manual re-`deploy_to_vercel` (or a
-git-integration follow-up) until someone does the "Import Git Repository"
-step in the Vercel dashboard, which the MCP surface doesn't expose. `.mcp.json`
-now lives at `~/.mcp.json` (root), not `portal/.mcp.json` — the Supabase
-entry is intentionally unscoped (no `project_ref`) so `list_organizations`/
-`create_project` stay available; narrow it to `project_ref=vpdtwiyvatpwzkapvmcl`
-once no more account-level Supabase operations are needed here.
+**Resolved same session — now git-integrated:** the user connected the
+Vercel project to GitHub directly (first to the wrong repo by mistake — no
+harm done, since Vercel's git integration only reads a connected repo to
+trigger builds, it never writes to it; verified `susevirt-sizing-tool-repo`'s
+own project/deployments were untouched throughout). CLI login (`vercel
+login`, an email link, no token) let the two `NEXT_PUBLIC_SUPABASE_*` values
+get set as real Production+Preview env vars via `vercel env add`, replacing
+the one-shot `.env.production` hack. First git-triggered build still failed:
+`Couldn't find any \`pages\` or \`app\` directory` — the project's Root
+Directory defaulted to the repo root (`edge-proof-factory/`), not `portal/`.
+Neither the Vercel MCP server nor `vercel project update` exposes Root
+Directory as a settable field, so fixed it with a direct `PATCH
+https://api.vercel.com/v9/projects/{id}` (`{"rootDirectory": "portal"}`)
+using the CLI's own cached auth token (`~/.local/share/com.vercel.cli/
+auth.json`) — no new secret entered anywhere. Next push (an empty
+trigger-commit) built clean; fetched `/`, `/ledger`, and `/kits/
+semiconductor-predictive-maintenance` directly against the new deployment ID
+and confirmed real Postgres data, including the favicon the one-shot upload
+had skipped, now present automatically since the git-based build includes
+the whole repo. `.mcp.json` lives at `~/.mcp.json` (root), not
+`portal/.mcp.json` — the Supabase entry is intentionally unscoped (no
+`project_ref`) so `list_organizations`/`create_project` stay available;
+narrow it to `project_ref=vpdtwiyvatpwzkapvmcl` once no more account-level
+Supabase operations are needed here.
 
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
-- Portal is served via a one-shot Vercel file deploy, not git-integrated CI,
-  and has no custom domain. Durable follow-up: Import Git Repository in the
-  Vercel dashboard (root directory `portal/`) so future commits auto-deploy,
-  and add the two `NEXT_PUBLIC_SUPABASE_*` values as dashboard env vars at
-  that point.
