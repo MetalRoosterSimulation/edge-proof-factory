@@ -301,9 +301,21 @@ in Vercel" — preceded by a mandatory research swarm.
   notice, kit-first CTAs (kit page, HOW-TO-RUN-THIS-DEMO.md, repo).
 - Nav "Live simulation" + home-page callout card.
 
-**Verified:** 61/61 vitest (28 new demo tests incl. full golden parity),
+**Verified:** 65/65 vitest (32 new demo tests incl. full golden parity),
 eslint clean, `next build` clean with /demo prerendered static. Python kit
-tests still 9/9; kit directory byte-untouched.
+tests still 9/9; kit directory byte-untouched. **Live-verified on the
+production URL with a real browser** (Claude-in-Chrome): boot, 4 Hz ticking,
+fault injection, model detection with correct attribution, governance
+counters. Live testing caught one real defect — the first diagnose()
+(rank-weighted set overlap) mis-labeled a chiller fault as a He seal leak
+when one dominant channel (temp z=8) was joined by noise channels; replaced
+with signed cosine similarity against sigma-scaled drift signatures + a
+2-sigma significance floor, with the exact live-observed attribution as a
+regression test. Also fixed from live findings: paused-notice now shows when
+a page loads in an already-hidden tab, and inject/heal re-render immediately
+while ticking is paused/browser-throttled. (Chrome throttles hidden-tab
+timers to 1/min after 5 min — the sim "freezing" in a backgrounded window is
+that throttling plus the deliberate pause-on-hidden, not a bug.)
 
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
