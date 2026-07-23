@@ -23,6 +23,11 @@ spec:
             - { name: MQTT_HOST, value: mosquitto }
             - { name: MQTT_PORT, value: "1883" }
             - { name: WARMUP, value: "30" }
+            # Points at the optional SUSE AI tier. Harmless when that tier isn't
+            # deployed — /api/explain then returns a clear "AI tier not reachable,
+            # run make ai" note. The AI profile (k8s/ai) adds the ollama Service.
+            - { name: OLLAMA_URL, value: "http://ollama:11434" }
+            - { name: OLLAMA_MODEL, value: "qwen2.5:0.5b" }
           resources:
             requests: { cpu: "50m", memory: "96Mi" }
             limits: { cpu: "500m", memory: "256Mi" }

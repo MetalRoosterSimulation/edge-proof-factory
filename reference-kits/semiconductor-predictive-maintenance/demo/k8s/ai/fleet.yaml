@@ -1,12 +1,13 @@
-# Fleet (Rancher GitOps) config for the AI profile (base demo + SUSE AI analog:
-# Ollama + Open WebUI + the on-prem explain wiring).
+# Fleet (Rancher GitOps) config for the AI profile (SUSE AI analog: Ollama + Open
+# WebUI + a controlled egress policy). This is an ADDITIVE bundle deployed
+# alongside the base — point the GitRepo at BOTH paths (k8s/base and k8s/ai).
 #
-# Uses the SAME releaseName as the base so pointing the GitRepo at this path
-# UPGRADES the existing release in place (adds ollama/open-webui, sets OLLAMA_URL)
-# rather than colliding with it. takeOwnership adopts anything already deployed
-# by a local `make up` / `make ai`.
+# Its own release name (distinct from the base's) so the two bundles never fight
+# over ownership: base owns the core stack + the fab-edge namespace; this owns only
+# the AI resources. takeOwnership lets it adopt an AI tier a local `make ai`
+# already deployed.
 defaultNamespace: fab-edge
 
 helm:
-  releaseName: edge-proof-kit
+  releaseName: edge-proof-ai
   takeOwnership: true

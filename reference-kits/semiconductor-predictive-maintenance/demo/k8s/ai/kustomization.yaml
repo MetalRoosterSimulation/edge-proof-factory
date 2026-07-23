@@ -1,19 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: fab-edge
-# The AI profile = the base demo + a local LLM tier (SUSE AI analog) + wiring the
-# inference service to it so tools can be explained in plain language on-prem.
+# The AI profile is a SELF-CONTAINED, ADDITIVE overlay: it adds the SUSE AI analog
+# (Ollama + Open WebUI + a controlled egress policy) on top of the already-deployed
+# base. It does NOT reference ../base — that keeps it usable as its own Fleet bundle
+# (Fleet scopes each GitRepo path to its own directory, so a `../base` reference
+# fails under Fleet). The base already sets OLLAMA_URL on edge-inference, so no
+# cross-resource patch is needed here.
 resources:
-  - ../base
   - ollama.yaml
   - open-webui.yaml
   - allow-ollama-egress.yaml
-patches:
-  - target: { kind: Deployment, name: edge-inference }
-    patch: |
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value: { name: OLLAMA_URL, value: "http://ollama:11434" }
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value: { name: OLLAMA_MODEL, value: "qwen2.5:0.5b" }

@@ -18,6 +18,7 @@ import os
 import threading
 import time
 import urllib.request
+import urllib.error
 from collections import defaultdict, deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -178,10 +179,27 @@ class Handler(BaseHTTPRequestHandler):
                 "explanation": out.get("response", "").strip(),
                 "model": OLLAMA_MODEL,
             }))
-        except Exception as e:  # noqa: BLE001
+        except urllib.error.HTTPError as e:  # ollama up, but request failed
+            detail = ""
+            try:
+                detail = e.read().decode("utf-8")[:200]
+            except Exception:  # noqa: BLE001
+                pass
+            model_missing = "model" in detail.lower() and (
+                "not found" in detail.lower() or "try pulling" in detail.lower())
+            note = ("SUSE AI model '%s' is still downloading — try again shortly."
+                    % OLLAMA_MODEL) if model_missing else \
+                   ("SUSE AI request failed (HTTP %s): %s" % (e.code, detail))
             return self._send(200, json.dumps({
-                "tool_id": tool_id, "available": False,
-                "explanation": None, "error": str(e),
+                "tool_id": tool_id, "available": False, "explanation": None,
+                "note": note,
+            }))
+        except Exception as e:  # noqa: BLE001  (connection refused, DNS, timeout)
+            return self._send(200, json.dumps({
+                "tool_id": tool_id, "available": False, "explanation": None,
+                "note": "SUSE AI tier not reachable at %s — deploy the AI profile "
+                        "(`make ai`, or add the Fleet k8s/ai path). Detail: %s"
+                        % (OLLAMA_URL, e),
             }))
 
     def _api_health(self):
