@@ -15,7 +15,7 @@ release note before a build — the matrix is pinned per release).
 | `edge-inference` (CPU control-chart model) | On-prem health scoring + RUL | **SUSE AI**: Ollama/vLLM + Milvus (+ heavier model), on a GPU node | SUSE AI 1.0 |
 | `ollama` + `open-webui` (open images) | Local GenAI assistant | **SUSE AI** — the identical Ollama + Open WebUI, from the **SUSE Application Collection** (`dp.apps.rancher.io`) | SUSE AI 1.0 |
 | `kubectl` / kustomize | Deploy | **Rancher Prime** + **Fleet** GitOps | Rancher Prime 2.14.1 |
-| `NetworkPolicy` (k3s default) | Runtime security | **SUSE Security (NeuVector)** — inline L7 enforcement; All-in-One for single node | NeuVector 5.5.1 |
+| `NetworkPolicy` (always on) + **NeuVector deployed by `make security`** | Runtime security | **SUSE Security (NeuVector)** — inline L7 enforcement; All-in-One for single node. The demo deploys the real product (chart 2.10.2); Protect-mode enforcement requires non-nested k3s — on k3d the NetworkPolicy is the enforced boundary (see LAB-SETUP §6) | NeuVector 5.5.2 |
 | `emptyDir` / k3s local-path | Storage | Single node: **local-path** (bundled). Multi-node: **SUSE Storage (Longhorn)** | Longhorn 1.11.1 |
 
 ## Notes that change a build decision

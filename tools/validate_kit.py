@@ -127,6 +127,21 @@ def main(kit):
             err("unit tests FAILED: %s\n%s"
                 % (os.path.basename(tf), rc.stdout.decode()[-400:]))
 
+    # --- docs are portable: no machine-specific paths in user-facing guides ---
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    portable_docs = ["README.md", os.path.join("docs", "LAB-SETUP.md")]
+    for rel in portable_docs:
+        path = os.path.join(repo, rel)
+        if not os.path.exists(path):
+            errors.append("%s missing (user-facing doc)" % rel)
+            continue
+        body = _read(path)
+        bad = [pat for pat in ("~/Work/", "/home/kibby") if pat in body]
+        if bad:
+            errors.append("%s contains machine-specific paths: %s" % (rel, ", ".join(bad)))
+        else:
+            passes.append("%s is copy-paste portable" % rel)
+
     # --- report ---
     print("\n=== validate_kit: %s ===" % kit)
     for p in passes:

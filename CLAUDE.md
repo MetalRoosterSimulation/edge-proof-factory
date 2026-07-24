@@ -35,22 +35,24 @@ consumes their output (use case, architecture, economics) and produces the proof
 - `docs/` — project-brief, suse-edge-ai-stack, handoff-doctrine, footprint-rules.
 - `templates/` — component-map / runbook / scale-up templates for new kits.
 - `tools/validate_kit.py` — the release gate (run before shipping a kit).
-- `portal/` — the Vercel + Supabase partner portal: a read-only Next.js app
-  presenting the proof kit catalog, handoff docs, and this ledger as a live
-  web page. It does not run the k3s demo (can't — Vercel is serverless); it
-  displays what the demo already proved, and serves `/demo` — an interactive
-  in-browser SIMULATION of the kit's pipeline (TypeScript port in
-  `portal/lib/demo/`, golden-parity-tested against the Python model, labeled
-  a simulation on-page; the kit stays the deliverable). See `portal/README.md`.
+- `portal/` — the live demo app (Vercel, no backend at runtime): '/' is the
+  FabEdge FDC console — an in-browser SIMULATION of the kit's pipeline
+  (TypeScript port in `portal/lib/demo/`, golden-parity-tested against the
+  Python model; labeled on-page; the kit stays the deliverable). Docs live in
+  GitHub (README.md, docs/LAB-SETUP.md), not the app. See `portal/README.md`.
 
 ## To produce a new Proof Kit
-Follow `RUN.md`. In short: pull the use case + architecture from the sibling
+Follow `docs/factory/RUN-A-NEW-KIT.md`. In short: pull the use case + architecture from the sibling
 factories → design the minimal all-open demo that mirrors that architecture →
 build & test it end-to-end (`make up`, inject a fault, unit tests) → write the
 hand-off kit from `templates/` grounded in `docs/suse-edge-ai-stack.md` →
 `tools/validate_kit.py` → commit.
 
-## Git gotcha (inherited)
-Repo root is all of `/home/kibby`. Always path-scope git
-(`git add -- "Work/edge-proof-factory/..."`); never `git add -A`. `node_modules/`
-and `.rancher-env` / `*credentials.env` are gitignored — never commit secrets.
+## Git gotchas
+This factory is its OWN git repo (root = this directory, remote
+`MetalRoosterSimulation/edge-proof-factory`) — commit here, not the home-dir
+repo. Still path-scope adds (never `git add -A`): `~/.mcp.json` secrets
+context lives above, and `node_modules/`, `.rancher-env`,
+`*credentials.env`, `.env.local` are gitignored — never commit secrets.
+User-facing docs (README, docs/LAB-SETUP.md) must stay copy-paste portable —
+`tools/validate_kit.py` fails on machine-specific paths.
