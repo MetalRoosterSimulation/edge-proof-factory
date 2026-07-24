@@ -350,6 +350,65 @@ clean (/demo static; /api/chat + /api/explain serverless). ACTION REQUIRED
 for AI features on the live site: set ANTHROPIC_API_KEY on the Vercel
 project (Production + Preview) — everything else works without it.
 
+## Phase 13 — total redesign: the app IS the demo (research + decisions, 2026-07-23)
+User mandate: rethink everything. The Vercel link must open an elegant,
+real-scenario predictive-maintenance APP (sensor dashboard, metrics, fault
+inject/heal, AI explanation + remediation, NeuVector sovereignty story);
+documentation moves to GitHub with a dummy-proof lab rebuild guide; Rancher /
+Open WebUI reconsidered as possibly obsolete. A five-agent research swarm ran
+before any work (SUSE stack ground truth, industrial-UI patterns, rebuild-guide
+benchmarks, codebase audit, adversarial review). Decisions, all adopted:
+
+- STACK TRUTH: current release is SUSE Edge 3.6.1 (SL Micro 6.2, K3s 1.35.4,
+  Rancher Prime 2.14.2, NeuVector 5.5.2, EIB 1.3.3.1; Akri REMOVED from Edge
+  3.6). SUSE Industrial Edge = productized Losant (acquired 2026-02, announced
+  SUSECON 2026-04) with NO public GA version or tiers — quote no numbers.
+  Docs update from the 3.6.0 matrix to 3.6.1.
+- NEUVECTOR: genuinely enforces "fab traffic stays at the fab" (group/FQDN
+  egress rules, Protect-mode blocking, DLP sensors) BUT MQTT is not in its L7
+  protocol list — flows are governed as TCP:1883; never claim MQTT-protocol-
+  aware policy. Single-node floor ~2c/2GB — laptop-feasible. The kit's
+  existing k8s/neuvector bundle (chart 2.8.13/NV 5.5.1) gets a plain-Helm
+  `make security` path, a version bump toward 5.5.2, and a LIVE egress-block
+  exercise on k3d before any claim ships (proof-before-ship). NetworkPolicy
+  STAYS in base — NeuVector is added, not substituted.
+- RANCHER: not required for a credible single-site SUSE Edge deployment
+  (SUSE's own standalone-EIB quickstart bootstraps without central mgmt).
+  Demoted to an optional "Day 2: fleet management" appendix; nothing deleted
+  (Phases 6-9 remain verified work; k8s paths unchanged so the live Fleet
+  GitRepo cannot tear down workloads). Open WebUI leaves the primary path
+  (the app has its own chat); make target + component-map row stay; Ollama
+  stays (the on-prem explain path is the SUSE AI story).
+- THE APP: '/' becomes a fab operations console designed to ISA-101
+  high-performance-HMI rules — near-neutral gray control-room chrome, color
+  reserved for abnormal states (yellow/orange/red + blue for operator
+  actions; NO green-means-good), tabular-mono numerics, dense hairline
+  panels. Screens: header (fab/lot/recipe/E10 chip), SEMI-E10 tool-state
+  grid, per-tool sensor strip-charts with UCL/LCL from the simulator's own
+  operating point, health + contribution (attribution) bars, RUL tile,
+  ISA-18.2-style alarm list with ACK, sovereignty panel, AI explain +
+  assistant panels (explicit click, never auto-fire). Guided run-through =
+  a scripted 5-step scenario sidebar driving the EXISTING DemoEngine — no
+  tour library. Honesty demoted from banner to credential: a persistent chip
+  "Simulated fab - same SPC model as the on-prem kit - golden-parity-tested"
+  plus an expandable "what is real here" panel. NeuVector appears as the
+  KIT's enforcement of the boundary the sim genuinely implements (named +
+  LAB-SETUP link) — never as fake live block events. ZERO changes to
+  lib/demo engine/model/gateway (golden parity is a hard gate); sensor
+  traces render from the history the engine already keeps.
+- SUPABASE: removed. All pages replaced in ONE atomic commit/deploy ('/' =
+  console; /demo -> '/' redirect; /kits/* and /ledger -> GitHub redirects),
+  Supabase code+tests deleted in the same commit, and the Supabase project
+  paused only AFTER the live site verifies clean. Ledger/docs live in GitHub.
+- DOCS: new public README.md (pitch, live-demo link, quickstart above the
+  fold, Mermaid architecture); HOW-TO-RUN-THIS-DEMO.md promoted to
+  docs/LAB-SETUP.md at benchmark spec (exact-version prerequisites table
+  with verify commands, per-step expected-output checkpoints, symptom->fix
+  troubleshooting, numbered teardown, time estimates, zero machine-specific
+  paths); RUN.md and factory doctrine move under docs/factory/;
+  START-HERE.md deleted (absorbed by README). validate_kit.py grows a guard
+  against machine-specific paths in docs.
+
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
 - ANTHROPIC_API_KEY not yet set on the Vercel project — until the user adds
