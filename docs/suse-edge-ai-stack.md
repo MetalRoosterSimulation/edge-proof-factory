@@ -7,10 +7,10 @@ for the component map and footprint docs; for anything not here, grep the full
 `suse-brain.md` (shared, ~1.5 MB — never read whole).
 
 ## Pinned matrix — SUSE Edge 3.6.1
-SL Micro 6.2 · K3s 1.35.3 · RKE2 1.35.3 · Rancher Prime 2.14.1 · Longhorn (SUSE
-Storage) 1.11.1 · NeuVector (SUSE Security) 5.5.2 · Metal3 0.15.0 · MetalLB
+SL Micro 6.2 · K3s 1.35.4 · RKE2 1.35.4 · Rancher Prime 2.14.2 · Longhorn (SUSE
+Storage) 1.11.2 · NeuVector (SUSE Security) 5.5.2 · Metal3 0.15.0 · MetalLB
 0.15.3 · Elemental 1.9.0 · Edge Image Builder 1.3.3.1 · KubeVirt 1.7.0 · Turtles/
-CAPI 0.26.1 · System Upgrade Controller 0.19.1 · Upgrade Controller 0.1.3 ·
+CAPI 0.26.2 · System Upgrade Controller 0.19.1 · Upgrade Controller 0.1.3 ·
 cert-manager 1.20.1. SUSE AI = **1.0** (separate cadence; base OS SLES 15 SP6 or
 SL Micro 6.1).
 

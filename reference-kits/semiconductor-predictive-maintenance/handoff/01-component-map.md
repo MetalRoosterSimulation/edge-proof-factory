@@ -2,21 +2,21 @@
 
 Every component in the demo is openly pullable so the demo runs with no
 entitlement. This table is the swap list for production. Versions are the
-**SUSE Edge 3.6.0** support matrix (re-verify against the current SUSE Edge
+**SUSE Edge 3.6.1** support matrix (re-verify against the current SUSE Edge
 release note before a build — the matrix is pinned per release).
 
-| Demo component (open) | Role in the use case | Production SUSE component | Pinned version (Edge 3.6.0) |
+| Demo component (open) | Role in the use case | Production SUSE component | Pinned version (Edge 3.6.1) |
 |---|---|---|---|
 | `sensor-simulator` | Stands in for PLC / OPC UA / Modbus device outputs | The fab's real equipment + protocol adapters | n/a (customer OT) |
 | `mosquitto` + `gateway-edge-agent` (runs the real `losant-mqtt` SDK) | Local broker, normalize, offline-buffer, governed egress | **SUSE Industrial Edge** — Losant Gateway Edge Agent (`losant/edge-agent`) running an Edge Workflow | Losant GEA (SUSE OEM) |
-| `k3d` (k3s in Docker), single node | Edge Kubernetes | **SUSE Edge**: **K3s** on **SUSE Linux Micro**; **RKE2** where CIS/FIPS is required | SL Micro 6.2 · K3s 1.35.3 · RKE2 1.35.3 |
+| `k3d` (k3s in Docker), single node | Edge Kubernetes | **SUSE Edge**: **K3s** on **SUSE Linux Micro**; **RKE2** where CIS/FIPS is required | SL Micro 6.2 · K3s 1.35.4 · RKE2 1.35.4 |
 | (manual node) | Immutable edge OS | **SUSE Linux Micro** (read-only Btrfs, A/B, SELinux) | 6.2 |
 | (n/a in demo) | Remote onboarding / phone-home | **Elemental** (+ Edge Image Builder to bake the boot image) | Elemental 1.9.0 · EIB 1.3.3.1 |
 | `edge-inference` (CPU control-chart model) | On-prem health scoring + RUL | **SUSE AI**: Ollama/vLLM + Milvus (+ heavier model), on a GPU node | SUSE AI 1.0 |
 | `ollama` + `open-webui` (open images) | Local GenAI assistant | **SUSE AI** — the identical Ollama + Open WebUI, from the **SUSE Application Collection** (`dp.apps.rancher.io`) | SUSE AI 1.0 |
-| `kubectl` / kustomize | Deploy | **Rancher Prime** + **Fleet** GitOps | Rancher Prime 2.14.1 |
+| `kubectl` / kustomize | Deploy | **Rancher Prime** + **Fleet** GitOps | Rancher Prime 2.14.2 |
 | `NetworkPolicy` (always on) + **NeuVector deployed by `make security`** | Runtime security | **SUSE Security (NeuVector)** — inline L7 enforcement; All-in-One for single node. The demo deploys the real product (chart 2.10.2); Protect-mode enforcement requires non-nested k3s — on k3d the NetworkPolicy is the enforced boundary (see LAB-SETUP §6) | NeuVector 5.5.2 |
-| `emptyDir` / k3s local-path | Storage | Single node: **local-path** (bundled). Multi-node: **SUSE Storage (Longhorn)** | Longhorn 1.11.1 |
+| `emptyDir` / k3s local-path | Storage | Single node: **local-path** (bundled). Multi-node: **SUSE Storage (Longhorn)** | Longhorn 1.11.2 |
 
 ## Notes that change a build decision
 

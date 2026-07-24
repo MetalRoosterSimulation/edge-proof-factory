@@ -1,6 +1,6 @@
 # Production footprint — sourced hardware floors
 
-Minimum specs from the SUSE product docs (SUSE Edge 3.6.0 / SUSE AI 1.0). These
+Minimum specs from the SUSE product docs (SUSE Edge 3.6.1 / SUSE AI 1.0). These
 are floors, not sizing — real sizing is a Stage-1 discovery deliverable. Numbers
 without a customer input stay as ranges; do not invent node counts.
 
