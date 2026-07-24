@@ -1,6 +1,6 @@
 # SUSE Security (NeuVector) — real runtime container security with a web console.
 # Deployed by Fleet straight from the upstream Helm chart (this is how SUSE ships
-# it). Pinned to chart 2.10.2 = NeuVector 5.5.2, matching the SUSE Edge 3.6.0
+# it). Pinned to chart 2.10.2 = NeuVector 5.5.2, matching the SUSE Edge 3.6.1
 # matrix in the hand-off kit. Its own namespace + release, so it never collides
 # with the base/ai bundles.
 #

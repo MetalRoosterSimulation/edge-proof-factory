@@ -4,7 +4,8 @@
  * No tour engine: each step carries operator-voice narration, an optional
  * action against the DemoEngine, and a completion condition evaluated
  * against the live view. The script is the console port of the kit's proven
- * 90-second demo narration (HOW-TO-RUN-THIS-DEMO), extended with the
+ * 90-second demo narration (docs/LOCAL-SETUP.md — formerly
+ * HOW-TO-RUN-THIS-DEMO.md, now a redirect stub), extended with the
  * sovereignty exercise. The AI step accepts either the deterministic
  * signature diagnosis (always available) or a hosted-AI explanation.
  */

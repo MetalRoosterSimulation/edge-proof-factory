@@ -21,8 +21,11 @@ consumes their output (use case, architecture, economics) and produces the proof
    steps only. No selling psychology. Banned filler words (leverage, seamless,
    robust, end-to-end as an adjective). Economics services-first, resale attached.
 5. **No fabrication.** Product facts come from `docs/suse-edge-ai-stack.md`
-   (grep the shared `suse-brain.md` for anything missing) with sources. Unknown
-   numbers stay as ranges or `[FILL]`; never invent node counts, durations, prices.
+   (for anything missing, grep the shared corpus at
+   `~/Work/use-case-factory/docs/suse-brain.md` — it's ~1.5 MB, grep the topic,
+   never read it whole; this repo deliberately carries no copy) with sources.
+   Unknown numbers stay as ranges or `[FILL]`; never invent node counts,
+   durations, prices.
 6. **Faithful architecture.** Match the use-case-factory's architecture (e.g. the
    GEA is a relay, not the compute; governance boundary forwards derived data
    only). If the demo must diverge for footprint, say so in the component map.
@@ -57,3 +60,29 @@ context lives above, and `node_modules/`, `.rancher-env`,
 `*credentials.env`, `.env.local` are gitignored — never commit secrets.
 User-facing docs (README, docs/LOCAL-SETUP.md, docs/LAB-MVP-SETUP.md) must stay copy-paste portable —
 `tools/validate_kit.py` fails on machine-specific paths.
+
+More gotchas a fresh session needs:
+- **`main` has no upstream tracking configured** — `git status` will never
+  show ahead/behind, and bare `git push`/`git pull` fail; use
+  `git push origin main` explicitly. This matters because **Fleet pulls from
+  GitHub**: `fleet.yaml`/manifest changes only take effect once pushed
+  (BUILD-LEDGER Phase 7 lesson).
+- **`portal/` is tracked in THIS repo** (it is not its own git repo). Vercel
+  builds it via the project's Root Directory = `portal` setting, so one push
+  to `main` triggers **both** a Vercel build and a Fleet resync.
+
+## Session launch & credentials (current convention)
+- Every new terminal already exports `RANCHER_URL`/`RANCHER_TOKEN`/
+  `RANCHER_INSECURE_TLS` (plus `GITHUB_PAT`): `~/.bashrc` reads the 1Password
+  service-account token from `~/.config/op/service-account-token` (read-only
+  scope on the `Dev-MCP` vault, item `rancher-mcp-edge-proof-factory`) and
+  `op read`s the values at shell startup. **Plain `claude` from this repo just
+  works.** Manual fallback / forced refresh:
+  `op run --env-file=.env.1password -- claude` (`.env.1password` holds only
+  `op://` references, never real values — committable by design).
+- `.mcp.json` (repo root) registers the Rancher MCP server: stdio launch of
+  `integrations/rancher-mcp-server/src/index.js` via `${CLAUDE_PROJECT_DIR}`,
+  credentials interpolated from `${RANCHER_URL}`/`${RANCHER_TOKEN}` env vars.
+- `.rancher-env` is the **older** standalone mechanism — still used by
+  `integrations/rancher-mcp-server/scripts/wire-rancher.sh` for direct script
+  runs, but the 1Password env-var path above is the current one for sessions.

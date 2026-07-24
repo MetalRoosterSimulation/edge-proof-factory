@@ -13,7 +13,8 @@ golden-parity-tested.
 **[🔧 Build it on-prem in ~45 minutes](docs/LOCAL-SETUP.md)** — the
 dummy-proof guide for your own machine (k3d). If you can copy-paste into a
 terminal, you can run this. Building in a formal enterprise lab on real
-single-node k3s: **[docs/LAB-MVP-SETUP.md](docs/LAB-MVP-SETUP.md)**.
+single-node k3s: **[docs/LAB-MVP-SETUP.md](docs/LAB-MVP-SETUP.md)** (not yet
+verified on a real k3s host; the k3d path is).
 
 ---
 
@@ -59,8 +60,9 @@ make down                    # clean teardown
 
 Full walkthrough with per-step checkpoints, the NeuVector exercise, the AI
 tier, and troubleshooting: **[docs/LOCAL-SETUP.md](docs/LOCAL-SETUP.md)**
-(laptop/k3d) or **[docs/LAB-MVP-SETUP.md](docs/LAB-MVP-SETUP.md)**
-(enterprise lab, real k3s).
+(laptop/k3d, verified end-to-end) or
+**[docs/LAB-MVP-SETUP.md](docs/LAB-MVP-SETUP.md)** (enterprise lab, real
+k3s — not yet verified on real k3s).
 
 ## Repository map
 

@@ -4,7 +4,8 @@ Condensed from `suse-brain.md` (SUSE primary sources, dated 2026-06). The stack 
 pinned per SUSE Edge release; **re-verify versions before quoting** — the current
 pinned matrix here is **SUSE Edge 3.6.1** (z-stream of 3.6; verified against documentation.suse.com 2026-07-23). This file is the grep-first reference
 for the component map and footprint docs; for anything not here, grep the full
-`suse-brain.md` (shared, ~1.5 MB — never read whole).
+shared corpus at `~/Work/use-case-factory/docs/suse-brain.md` (~1.5 MB — grep
+the topic, never read it whole; this repo carries no copy).
 
 ## Pinned matrix — SUSE Edge 3.6.1
 SL Micro 6.2 · K3s 1.35.4 · RKE2 1.35.4 · Rancher Prime 2.14.2 · Longhorn (SUSE

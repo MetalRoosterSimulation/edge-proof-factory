@@ -1,4 +1,4 @@
-# RUN.md — produce a new Proof Kit
+# RUN-A-NEW-KIT.md — produce a new Proof Kit
 
 Input:
 ```

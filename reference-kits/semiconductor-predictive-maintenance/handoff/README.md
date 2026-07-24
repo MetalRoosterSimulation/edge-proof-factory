@@ -7,7 +7,7 @@ production on their own limited resources. Read in order:
    demo, turn it into a customer pilot, connect the real products, and the
    services-first economics. Start here.
 2. **`01-component-map.md`** — every open demo component → its SUSE-supported
-   production equivalent, with pinned SUSE Edge 3.6.0 versions and the decisions
+   production equivalent, with pinned SUSE Edge 3.6.1 versions and the decisions
    that change a build.
 3. **`02-scale-up-path.md`** — laptop → one edge box → hardened zone → fleet, as
    the four billable services phases with owner-tagged steps.

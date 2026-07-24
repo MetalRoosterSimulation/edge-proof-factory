@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "rancher": {
+      "command": "node",
+      "args": ["${CLAUDE_PROJECT_DIR}/integrations/rancher-mcp-server/src/index.js"],
+      "env": {
+        "RANCHER_URL": "${RANCHER_URL}",
+        "RANCHER_TOKEN": "${RANCHER_TOKEN}",
+        "RANCHER_INSECURE_TLS": "${RANCHER_INSECURE_TLS}"
+      }
+    }
+  }
+}

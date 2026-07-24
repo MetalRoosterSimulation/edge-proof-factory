@@ -13,7 +13,8 @@ architecture) produces a runnable artifact — this one does. See `docs/project-
 - Demo = 100% openly-pullable images, single-node k3s (k3d), CPU-only, laptop-class.
 - Proof before ship: `make up` on a fresh cluster + live failure exercise + unit
   tests + `tools/validate_kit.py`, all green.
-- Honest hand-off: sourced SUSE versions (Edge 3.6.0 matrix) + real hardware floors;
+- Honest hand-off: sourced SUSE versions (Edge 3.6.0 matrix — superseded: now
+  3.6.1, see Phase 13) + real hardware floors;
   never sell the laptop footprint as production. Pilot's-manual voice.
 
 ## Phase 0 — research swarm
@@ -495,8 +496,55 @@ this ledger is append-only history. NOT verified on a real k3s host yet —
 the k3s build is documented from the Makefile/manifests and sourced stack
 facts; first live lab run should confirm step Checks as written.
 
+## Phase 16 — 2026-07-24: QA pass (cross-factory audit)
+
+A workspace-wide factory audit flagged doc drift and small defects; all fixed
+in one pass:
+- **portal/CLAUDE.md rewritten** — it was a pre-Phase-12 fossil (described the
+  removed Supabase layer, called the kit "unrelated code"). Now states the
+  parity contract (health_model.py is source of truth for portal/lib/demo/),
+  that portal/ is tracked in THIS repo with Vercel Root Directory = portal,
+  and that one push to main triggers both a Vercel build and a Fleet resync.
+- **CLAUDE.md** — added the session-launch/credentials convention (1Password
+  headless service account via ~/.bashrc; `.env.1password` op:// refs;
+  `.mcp.json` `${CLAUDE_PROJECT_DIR}` registration; `.rancher-env` marked as
+  the older script-only mechanism), the no-upstream-on-main warning (Fleet
+  only sees pushed commits), the portal-in-this-repo facts, and a concrete
+  path for the shared suse-brain corpus (this repo carries no copy).
+- **Makefile (`demo/`)** — fixed `ai-open` (previously printed "nodePort 1"
+  and the dashboard URL as the Open WebUI URL; now prints the real nodePort
+  via `expr` and a working `kubectl port-forward svc/open-webui` command);
+  added `ai-open` + `sovereignty-verify` to `.PHONY` and the header help.
+- **templates/** — created `03-production-footprint.template.md` (the gate
+  requires an 03 in every kit but no template existed — a new kit built from
+  templates failed validate_kit); added the NeuVector row + Security note to
+  `01-component-map.template.md` to match the shipped kit.
+- **demo/README.md** — added `make security`/`make sovereignty-verify` to
+  Run-it, NeuVector to Optional profiles and Layout, and fixed the two
+  "all green"/"green at 100" phrases to match the ISA-101 decision (neutral
+  when normal).
+- **Version stragglers** — 3.6.0 → 3.6.1 in `handoff/README.md` and the
+  neuvector `fleet.yaml` comment; Locked-decisions line annotated
+  "(superseded: now 3.6.1)"; LOCAL/LAB setup guides note the 2.13.x lab
+  instance vs the pinned Rancher Prime 2.14.2 matrix.
+- **integrations/rancher-mcp-server/README.md** — removed hardcoded
+  machine paths, documented the actual `.mcp.json` registration.
+- **tools/validate_kit.py** — now validates the neuvector Fleet bundle,
+  scans handoff docs for machine-specific paths, covers the rancher-mcp and
+  portal READMEs in the portability check, and dropped a dead variable.
+  Gate after all edits: **23 pass / 0 warn / 0 FAIL** (was 20/0/0).
+- **Stale refs** — RUN.md → `docs/factory/RUN-A-NEW-KIT.md` (project-brief,
+  this file's Open threads, and the RUN-A-NEW-KIT title itself); the
+  project-brief's `/demo` description now says the console is the root page;
+  `portal/lib/console/scenario.ts` comment points at LOCAL-SETUP.md.
+- **LAB-MVP-SETUP.md** — top-of-file status caveat added (NOT yet verified
+  on real k3s; k3d path is), echoed at both README mentions.
+- Session memory (`~/.claude/.../memory/edge-proof-factory.md` + index)
+  corrected: portal is not its own repo; no-upstream gotcha recorded.
+
 ## Open threads
-- Additional reference kits (other use-case-library patterns) on demand via RUN.md.
+- Additional reference kits (other use-case-library patterns) on demand via
+  `docs/factory/RUN-A-NEW-KIT.md`.
 - ANTHROPIC_API_KEY not yet set on the Vercel project — until the user adds
   it (Vercel dashboard → edge-ai-demo → Settings → Environment Variables),
   Explain (AI) and the Fab Assistant show the graceful "not configured" note.

@@ -73,7 +73,6 @@ def main(kit):
                 must_exist(os.path.join(d, "Dockerfile"), "Dockerfile for %s" % name)
 
     # --- manifests parse ---
-    base = os.path.join(demo, "k8s", "base")
     if _have("kubectl"):
         for overlay in ("base", "ai", "losant"):
             p = os.path.join(demo, "k8s", overlay)
@@ -88,6 +87,16 @@ def main(kit):
                         % (overlay, rc.stderr.decode()[:200]))
     else:
         warn("kubectl not found — skipped manifest build check")
+
+    # neuvector is a bare Fleet/Helm bundle (fleet.yaml, no kustomization) —
+    # validate what's checkable: the file exists and names a Helm chart.
+    nv = os.path.join(demo, "k8s", "neuvector", "fleet.yaml")
+    if os.path.exists(nv):
+        nv_text = _read(nv)
+        if "helm:" in nv_text and "chart" in nv_text:
+            ok("fleet bundle sane: k8s/neuvector/fleet.yaml")
+        else:
+            err("k8s/neuvector/fleet.yaml exists but names no Helm chart")
 
     # --- dashboard self-contained ---
     for root, _dirs, files in os.walk(demo):
@@ -112,6 +121,10 @@ def main(kit):
             if MARKER.search(text):
                 err("unresolved marker %s in handoff/%s"
                     % (MARKER.search(text).group(0), f))
+            bad = [pat for pat in ("~/Work/", "/home/kibby") if pat in text]
+            if bad:
+                err("handoff/%s contains machine-specific paths: %s"
+                    % (f, ", ".join(bad)))
         ok("voice/fabrication scan complete")
 
     # --- model unit tests ---
@@ -135,6 +148,8 @@ def main(kit):
         os.path.join("docs", "LAB-MVP-SETUP.md"),
         os.path.join("docs", "reference-architectures", "RA-01-on-prem.md"),
         os.path.join("docs", "reference-architectures", "RA-02-hybrid-aws.md"),
+        os.path.join("integrations", "rancher-mcp-server", "README.md"),
+        os.path.join("portal", "README.md"),
     ]
     for rel in portable_docs:
         path = os.path.join(repo, rel)

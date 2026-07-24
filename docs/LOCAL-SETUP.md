@@ -201,7 +201,9 @@ them, and this kit is already wired for it:
 
 - `scripts/wire-rancher.sh` imports the lab cluster into a Rancher instance
   and deploys the kit as a Fleet `GitRepo` (GitOps: push to the repo, the
-  cluster updates). Verified end-to-end against Rancher v2.13.x — see
+  cluster updates). Verified end-to-end against Rancher v2.13.x (the lab
+  instance; the current pinned matrix is Rancher Prime 2.14.2 per
+  `docs/suse-edge-ai-stack.md`) — see
   `BUILD-LEDGER.md` phases 6–8 for the receipts and the gotchas already
   solved (token prefixes, re-import after cluster recreation, Helm adoption).
 - `integrations/rancher-mcp-server/` exposes the same operations as MCP

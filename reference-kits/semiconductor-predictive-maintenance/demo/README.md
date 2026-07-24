@@ -41,11 +41,14 @@ Tier → production SUSE mapping (full detail in `../handoff/01-component-map.md
 
 ```bash
 make up                      # cluster + build + deploy (~2 min); prints the URL
-open http://localhost:18080  # the ops dashboard — 6 tools, all green
+open http://localhost:18080  # the ops dashboard — 6 tools, neutral/normal
 
 make fault TOOL=etch-03      # inject an RF-match-drift fault; watch it degrade
 make status                  # health/state/RUL for every tool
 make heal  TOOL=etch-03      # clear it
+
+make security                # add SUSE Security (NeuVector) with its web console
+make sovereignty-verify      # prove raw telemetry never crosses the egress boundary
 make down                    # delete the cluster
 ```
 
@@ -54,7 +57,8 @@ Fault library (`FAULT=`): `rf_match_drift` (default), `he_seal_leak`,
 
 ## The 90-second partner demo
 
-1. `make up`, open the dashboard — six tools green at 100.
+1. `make up`, open the dashboard — six tools healthy at 100 (the console keeps
+   normal states neutral; color is reserved for abnormal, per ISA-101).
 2. `make fault TOOL=etch-03` — narrate: "an RF matching network is starting to
    degrade." Within ~20s the card goes amber → red, health falls, the RUL
    forecast counts down, and `rf_reflected_power_w` is named as the top signal.
@@ -68,6 +72,9 @@ Fault library (`FAULT=`): `rf_match_drift` (default), `he_seal_leak`,
 - **SUSE AI (local LLM):** `make ai` adds Ollama + Open WebUI (the real SUSE AI
   Application Collection components) and wires an on-prem "explain this anomaly"
   endpoint (`/api/explain/<tool>`). Pulls a tiny model; give it a few minutes.
+- **SUSE Security (NeuVector):** `make security` deploys NeuVector with its web
+  console — the production enforcement of the egress boundary the base profile
+  proves with NetworkPolicy. `make sovereignty-verify` checks the boundary.
 - **Losant platform:** see `k8s/losant/README.md` — connect the gateway's real
   `losant-mqtt` SDK egress, or swap in the genuine `losant/edge-agent`.
 - **Rancher:** import this cluster into Rancher and deploy via Fleet — see
@@ -95,6 +102,7 @@ unchanged. Fully unit-tested (`tests/test_health_model.py`).
 images/            sensor-simulator · gateway-edge-agent (Losant) · edge-inference
 k8s/base/          the minimal-footprint deployment (kustomize)
 k8s/ai/            SUSE AI analog profile (Ollama + Open WebUI)
+k8s/neuvector/     SUSE Security profile (NeuVector via Fleet/Helm)
 k8s/losant/        Losant platform connection (SDK egress + real edge-agent)
 losant/            the Losant Edge Workflow to import
 tests/             model unit tests

@@ -9,6 +9,8 @@
 #   make test      run the model unit tests (no cluster needed)
 #   make ai        add the SUSE AI analog profile (Ollama + Open WebUI)
 #   make security  add SUSE Security (NeuVector) with its web console
+#   make sovereignty-verify  prove raw telemetry never crosses the egress boundary
+#   make ai-open   how to reach Open WebUI (port-forward; not mapped by default)
 #   make losant    connect the gateway to the Losant platform (needs creds)
 #   make down      delete the cluster
 #   make clean     delete cluster + remove built images
@@ -25,8 +27,8 @@ TOOL      ?= etch-03
 FAULT     ?= rf_match_drift
 KUBECTL   := kubectl -n $(NS)
 
-.PHONY: up cluster images import deploy wait open status fault heal test ai losant \
-        security rancher-import down clean
+.PHONY: up cluster images import deploy wait open status fault heal test ai ai-open losant \
+        security sovereignty-verify rancher-import down clean
 
 up: cluster images import deploy wait open
 
@@ -91,7 +93,8 @@ ai:
 	@echo "Open WebUI: run 'make ai-open' once ready."
 
 ai-open:
-	@echo "Open WebUI: http://localhost:$(HOSTPORT)  (nodePort $(shell echo $$((NODEPORT+1))) -> add a -p mapping if needed)"
+	@echo "Open WebUI is on nodePort $(shell expr $(NODEPORT) + 1) — the k3d cluster only maps $(HOSTPORT)->$(NODEPORT) (the dashboard)."
+	@echo "Quickest access:  $(KUBECTL) port-forward svc/open-webui 18081:8080   then open http://localhost:18081"
 
 losant:
 	@test -f k8s/losant/losant-credentials.env || { \

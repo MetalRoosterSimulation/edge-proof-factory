@@ -43,9 +43,32 @@ RANCHER_INSECURE_TLS=true                # if the cert is self-signed
 
 ## Register with an MCP client
 
-Claude Code:
+**Project-scoped `.mcp.json` (how this repo actually registers it):** a
+`.mcp.json` at the repo root launches the server via `${CLAUDE_PROJECT_DIR}`
+and interpolates credentials from environment variables — no literal secrets
+on disk. Provide the env vars from your secret manager (this repo uses
+1Password: `op run --env-file=.env.1password -- claude`, or shell-exported
+vars):
+
+```json
+{
+  "mcpServers": {
+    "rancher": {
+      "command": "node",
+      "args": ["${CLAUDE_PROJECT_DIR}/integrations/rancher-mcp-server/src/index.js"],
+      "env": {
+        "RANCHER_URL": "${RANCHER_URL}",
+        "RANCHER_TOKEN": "${RANCHER_TOKEN}",
+        "RANCHER_INSECURE_TLS": "${RANCHER_INSECURE_TLS}"
+      }
+    }
+  }
+}
+```
+
+Claude Code, one-off manual registration:
 ```bash
-claude mcp add rancher -- node /home/kibby/Work/edge-proof-factory/integrations/rancher-mcp-server/src/index.js
+claude mcp add rancher -- node "$HOME/Work/edge-proof-factory/integrations/rancher-mcp-server/src/index.js"
 ```
 
 Claude Desktop (`claude_desktop_config.json`):
@@ -54,7 +77,7 @@ Claude Desktop (`claude_desktop_config.json`):
   "mcpServers": {
     "rancher": {
       "command": "node",
-      "args": ["/home/kibby/Work/edge-proof-factory/integrations/rancher-mcp-server/src/index.js"],
+      "args": ["/path/to/edge-proof-factory/integrations/rancher-mcp-server/src/index.js"],
       "env": {
         "RANCHER_URL": "https://your-rancher-host",
         "RANCHER_TOKEN": "token-xxxxx:xxxxxxxxxxxx",
