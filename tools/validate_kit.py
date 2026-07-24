@@ -129,7 +129,12 @@ def main(kit):
 
     # --- docs are portable: no machine-specific paths in user-facing guides ---
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    portable_docs = ["README.md", os.path.join("docs", "LAB-SETUP.md")]
+    portable_docs = [
+        "README.md",
+        os.path.join("docs", "LAB-SETUP.md"),
+        os.path.join("docs", "reference-architectures", "RA-01-on-prem.md"),
+        os.path.join("docs", "reference-architectures", "RA-02-hybrid-aws.md"),
+    ]
     for rel in portable_docs:
         path = os.path.join(repo, rel)
         if not os.path.exists(path):

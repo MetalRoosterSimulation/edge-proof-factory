@@ -433,6 +433,47 @@ Everything decided above was built and verified the same session:
   RUN.md → docs/factory/RUN-A-NEW-KIT.md, stack doc → 3.6.1, component-map
   security row updated, validate_kit.py portability guard (17/0/0).
 
+## Phase 14 — VP-grade reference architectures: RA-01 on-prem + RA-02 hybrid AWS (2026-07-24)
+User mandate: two approval-grade reference architectures for a REAL 1,000-
+sensor-endpoint deployment — one 100% on-prem, one hybrid with AWS-hosted
+services — both under the hard constraint that no trade-secret data leaves
+the site; secure, resilient, HA, full Day-2; exec summary with a sourced
+business case; SUSE present but never sold; written "like someone gunning
+for CIO." Four-agent research swarm ran first (SUSE-at-scale, industrial
+practice/standards + citable PdM economics + AWS hybrid patterns,
+approval-document craft, adversarial IT/OT VP). Load-bearing findings:
+- 3.6.1 TRUE matrix per release notes (K3s/RKE2 1.35.4, Rancher 2.14.2,
+  Longhorn 1.11.2) — local docs had drift; fixed repo-wide first.
+- Losant documents ON-PREM/private-cloud platform installs → the 100%
+  on-prem variant is documented-feasible (resolved the adversarial
+  [VERIFY]); GEA floors 512MB/8GB, 65k-msg offline buffer.
+- Two-tier topology: 3-node RKE2 mgmt (Rancher "small" 4c/16GB×3) +
+  3-node RKE2 production; Longhorn best practices; NeuVector 3-controller
+  Raft; SUSE AI GPU floor. 1000ch@1Hz ≈ 1000 msg/s — sizing is HA-driven,
+  not throughput-driven. Mosquitto doesn't cluster → broker HA is a design
+  choice surfaced, not hidden.
+- Citable economics: McKinsey 30–50% downtime reduction; Deloitte +25%/
+  −70%/−25%; Siemens Senseye True Cost of Downtime 2024; ITIC 2024. No
+  primary source for semi-fab $/hr — presented as [FILL site actuals].
+- Adversarial guardrails adopted wholesale: A1 assumption pins what "1000
+  sensors" means; three-way claim labels (Lab-verified/Sourced/Assumption);
+  sovereignty as defense-in-depth (never "NeuVector keeps data on site"
+  standalone; Protect-at-scale deferred to the Phase-1 gate); failure-mode
+  tables instead of unsourced nines; Rancher mgmt ON-PREM in BOTH docs;
+  AWS as a closed list (derived ingest/dashboards, SageMaker on derived
+  features, S3 Object Lock escrow of client-side-encrypted backups with
+  keys on-site); enumerated wire schema with pseudonymized IDs + signed
+  classification ruling (A8); Outposts honestly rejected on its
+  service-link dependency; brownfield/incumbent-FDC coexistence mandatory;
+  TCO as formula requiring customer inputs; measurable pilot exit criteria;
+  evidence appendix stating what each repo artifact does and does NOT prove.
+Deliverables: docs/reference-architectures/RA-01-on-prem.md + RA-02-hybrid-
+aws.md (identical section numbering for side-by-side board review) plus
+elegant print PDFs of both (tools/render-ra-pdfs.sh — reproducible marked →
+styled HTML → headless-Chrome pipeline; mermaid zone diagrams render as
+vector graphics; visually verified page-by-page: 14pp/9pp). README links
+them; validate_kit.py portability guard extended to both (19/0/0).
+
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
 - ANTHROPIC_API_KEY not yet set on the Vercel project — until the user adds

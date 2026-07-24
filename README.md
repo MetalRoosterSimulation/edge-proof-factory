@@ -65,6 +65,7 @@ tier, and troubleshooting: **[docs/LAB-SETUP.md](docs/LAB-SETUP.md)**.
 | `reference-kits/semiconductor-predictive-maintenance/` | The Proof Kit: runnable demo (`demo/`) + partner hand-off kit (`handoff/`) |
 | `portal/` | The live console app (Next.js) — the in-browser simulation deployed to Vercel |
 | `docs/LAB-SETUP.md` | Step-by-step on-prem lab rebuild guide |
+| `docs/reference-architectures/` | VP-approval-grade 1,000-sensor reference architectures: [RA-01 on-prem](docs/reference-architectures/RA-01-on-prem.md) ([PDF](docs/reference-architectures/RA-01-on-prem.pdf)) · [RA-02 hybrid AWS](docs/reference-architectures/RA-02-hybrid-aws.md) ([PDF](docs/reference-architectures/RA-02-hybrid-aws.pdf)) |
 | `docs/` | Sourced SUSE stack facts, doctrine, factory process (`docs/factory/`) |
 | `integrations/rancher-mcp-server/` | Optional: MCP server for Rancher fleet management (Day-2 appendix) |
 | `BUILD-LEDGER.md` | Append-only build history — every phase, every verification |
