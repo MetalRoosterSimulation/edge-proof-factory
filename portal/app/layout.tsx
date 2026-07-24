@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Nav } from "@/components/Nav";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "Edge Proof Factory — Partner Portal",
+  title: "FabEdge FDC — SUSE Edge predictive-maintenance demo",
   description:
-    "Runnable SUSE Edge/AI proof kits and their partner hand-off kits, with the factory's build ledger.",
+    "Tool-health console for a simulated plasma-etch bay: on-device SPC scoring, fault injection and healing, AI diagnosis, and the SUSE Edge data-sovereignty story. Same model as the on-prem kit, golden-parity-tested.",
 };
 
 export default function RootLayout({
@@ -27,18 +28,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <Nav />
-        <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
-          {children}
-        </main>
-        <footer className="border-t border-black/10 px-6 py-6 text-center text-xs text-black/50 dark:border-white/10 dark:text-white/50">
-          Facts and steps only — see the reference kit&apos;s handoff docs for
-          sourced versions and hardware floors.
-        </footer>
-      </body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

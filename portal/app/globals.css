@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
+/*
+ * FabEdge FDC console — a committed dark "control room" theme informed by
+ * ISA-101 high-performance-HMI practice: near-neutral chrome, color reserved
+ * exclusively for abnormal states and operator actions. No green-means-good;
+ * steady state is deliberately quiet. One theme by design (a control room
+ * does not flip with the OS scheme).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f1114;
+  --foreground: #d6dae1;
+
+  /* chrome */
+  --c-bg: #0f1114;
+  --c-panel: #15181d;
+  --c-panel2: #1a1e24;
+  --c-line: #262b33;
+  --c-line-faint: #1d222a;
+
+  /* ink */
+  --c-ink: #d6dae1;
+  --c-ink2: #8f97a3;
+  --c-ink3: #5c6470;
+
+  /* the only non-neutral colors on screen (ISA-101 reserved semantics) */
+  --c-trace: #7d8ca1; /* steady-state sensor traces: muted gray-blue */
+  --c-watch: #d9a514; /* WATCH / EWMA drift */
+  --c-warn: #e07a2f; /* WARNING / excursion */
+  --c-crit: #e0473d; /* CRITICAL / unscheduled down */
+  --c-action: #4d9fdc; /* operator actions + guided scenario */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+}
+
+/* Numerics everywhere read as instrumentation. */
+.num {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  background: var(--c-panel);
+  border: 1px solid var(--c-line);
+}
+
+.panel-title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
