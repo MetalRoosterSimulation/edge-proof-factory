@@ -104,7 +104,7 @@ losant:
 security:
 	@helm repo add neuvector https://neuvector.github.io/neuvector-helm/ >/dev/null 2>&1 || true
 	@helm repo update neuvector >/dev/null 2>&1 || true
-	@helm upgrade --install neuvector neuvector/core --version 2.8.13 \
+	@helm upgrade --install neuvector neuvector/core --version 2.10.2 \
 	  --namespace neuvector --create-namespace \
 	  --set k3s.enabled=true --set k3s.runtimePath=/run/k3s/containerd/containerd.sock \
 	  --set controller.replicas=1 --set controller.pvc.enabled=false \
@@ -112,6 +112,9 @@ security:
 	@echo "SUSE Security (NeuVector) deploying. Console (HTTPS) once ready:"
 	@echo "  kubectl -n neuvector port-forward svc/neuvector-service-webui 8443:8443"
 	@echo "  then open https://localhost:8443  (default login admin/admin)"
+
+sovereignty-verify:
+	@bash tests/verify_sovereignty.sh
 
 rancher-import:
 	@echo "Point the Rancher MCP server at your instance, then call rancher_import_cluster."
