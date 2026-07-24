@@ -409,6 +409,30 @@ benchmarks, codebase audit, adversarial review). Decisions, all adopted:
   START-HERE.md deleted (absorbed by README). validate_kit.py grows a guard
   against machine-specific paths in docs.
 
+## Phase 13 (build) — shipped: console, kit proof, docs (2026-07-23/24)
+Everything decided above was built and verified the same session:
+
+- **portal/**: '/' is the FabEdge FDC console (one atomic commit removed
+  Supabase entirely — pages, lib, seed pipeline, deps; /demo→'/' and
+  /ledger, /kits/* → GitHub redirects verified against a local production
+  build). ZERO changes to lib/demo. 69/69 vitest (new console-logic +
+  console-UI suites incl. a full scripted-scenario playthrough against a
+  live engine), lint clean, build clean with '/' statically prerendered.
+- **kit**: NeuVector bumped to 5.5.2 (chart 2.10.2, the Edge 3.6.1 pin) and
+  upgraded LIVE on the k3d cluster (all pods healthy). New
+  `make sovereignty-verify` ran live: fab-namespace egress BLOCKED,
+  unprotected-namespace control egress ALLOWED. Honest k3d finding recorded:
+  NeuVector control plane/console/scanners run, but the enforcer cannot
+  complete cluster membership nested in Docker (consul gossip +
+  proc-connector unavailable) — Protect-mode demos need non-nested k3s; in
+  the k3d lab NetworkPolicy is the enforced boundary. LAB-SETUP §6 says
+  exactly this. Losant/Industrial Edge tier kept first-class per user
+  directive (gateway core + k8s/losant profile untouched).
+- **docs**: README.md front door + docs/LAB-SETUP.md (checkpoints,
+  versions, troubleshooting, teardown, appendices), START-HERE deleted,
+  RUN.md → docs/factory/RUN-A-NEW-KIT.md, stack doc → 3.6.1, component-map
+  security row updated, validate_kit.py portability guard (17/0/0).
+
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
 - ANTHROPIC_API_KEY not yet set on the Vercel project — until the user adds
