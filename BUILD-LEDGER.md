@@ -474,6 +474,27 @@ styled HTML → headless-Chrome pipeline; mermaid zone diagrams render as
 vector graphics; visually verified page-by-page: 14pp/9pp). README links
 them; validate_kit.py portability guard extended to both (19/0/0).
 
+## Phase 15 — lab-guide split: LOCAL-SETUP (k3d) + LAB-MVP-SETUP (real k3s) (2026-07-24)
+docs/LAB-SETUP.md renamed to docs/LOCAL-SETUP.md (git mv; laptop/k3d build,
+content unchanged apart from retitle + cross-links). New docs/LAB-MVP-SETUP.md:
+same demo outcome on a formal enterprise lab host — real single-node k3s
+(get.k3s.io pinned to the Edge 3.6.1 K3s 1.35.4, traefik disabled for
+manifest parity), enterprise prerequisites (dedicated VM/bare-metal host,
+firewall lead-time rows for 30080/6443, sourced hardware floors), docker/
+podman build + `k3s ctr images import` replacing `k3d image import`,
+dashboard at <host>:30080 NodePort (no k3d port mapping), NeuVector honest-
+scope note inverted (non-nested k3s → enforcer joins, activity map +
+Protect mode live), k3s-native teardown/troubleshooting. Explicitly fences
+off the k3d-only make targets (up/cluster/import/down/clean); the kubectl/
+helm targets (deploy/wait/fault/heal/status/security/ai/sovereignty-verify)
+carry over unchanged. All repo references updated (README, CLAUDE.md,
+HOW-TO-RUN-THIS-DEMO, portal README + Console.tsx footer link, component
+map §6 pointer); validate_kit portability guard now covers both guides
+(20/0/0). Earlier ledger phases keep the old LAB-SETUP name as written —
+this ledger is append-only history. NOT verified on a real k3s host yet —
+the k3s build is documented from the Makefile/manifests and sourced stack
+facts; first live lab run should confirm step Checks as written.
+
 ## Open threads
 - Additional reference kits (other use-case-library patterns) on demand via RUN.md.
 - ANTHROPIC_API_KEY not yet set on the Vercel project — until the user adds

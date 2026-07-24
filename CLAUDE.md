@@ -39,7 +39,8 @@ consumes their output (use case, architecture, economics) and produces the proof
   FabEdge FDC console — an in-browser SIMULATION of the kit's pipeline
   (TypeScript port in `portal/lib/demo/`, golden-parity-tested against the
   Python model; labeled on-page; the kit stays the deliverable). Docs live in
-  GitHub (README.md, docs/LAB-SETUP.md), not the app. See `portal/README.md`.
+  GitHub (README.md, docs/LOCAL-SETUP.md, docs/LAB-MVP-SETUP.md), not the
+  app. See `portal/README.md`.
 
 ## To produce a new Proof Kit
 Follow `docs/factory/RUN-A-NEW-KIT.md`. In short: pull the use case + architecture from the sibling
@@ -54,5 +55,5 @@ This factory is its OWN git repo (root = this directory, remote
 repo. Still path-scope adds (never `git add -A`): `~/.mcp.json` secrets
 context lives above, and `node_modules/`, `.rancher-env`,
 `*credentials.env`, `.env.local` are gitignored — never commit secrets.
-User-facing docs (README, docs/LAB-SETUP.md) must stay copy-paste portable —
+User-facing docs (README, docs/LOCAL-SETUP.md, docs/LAB-MVP-SETUP.md) must stay copy-paste portable —
 `tools/validate_kit.py` fails on machine-specific paths.

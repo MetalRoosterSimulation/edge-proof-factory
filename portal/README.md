@@ -8,7 +8,8 @@ runtime; the only serverless code is the optional AI stand-in
 (`/api/explain`, `/api/chat`).
 
 Documentation lives in the repo root ([README](../README.md),
-[docs/LAB-SETUP.md](../docs/LAB-SETUP.md)) — not in this app. Old portal
+[docs/LOCAL-SETUP.md](../docs/LOCAL-SETUP.md),
+[docs/LAB-MVP-SETUP.md](../docs/LAB-MVP-SETUP.md)) — not in this app. Old portal
 URLs (`/demo`, `/ledger`, `/kits/*`) redirect (see `next.config.ts`).
 
 ## Design

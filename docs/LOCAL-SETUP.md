@@ -1,4 +1,8 @@
-# Lab setup — build the on-prem demo yourself
+# Local setup — build the on-prem demo on your own machine
+
+> Building in a formal enterprise lab on real single-node k3s (VM or bare
+> metal) instead of a laptop? Use **[LAB-MVP-SETUP.md](LAB-MVP-SETUP.md)** —
+> same demo outcome, enterprise prerequisites, full NeuVector enforcement.
 
 **What you'll build:** the end-to-end SUSE Edge predictive-maintenance proof
 on your own machine — six simulated etch chambers, on-device SPC scoring
@@ -126,7 +130,8 @@ manager, and 3 scanner pods Running; the console loads.
 > one layer down), so live Protect-mode blocking and the network activity
 > map stay empty here. Run the kit on a **non-nested single-node k3s**
 > (an SL Micro VM or bare metal — the kit's actual production shape) for
-> the full Protect-mode egress-block demonstration. In this lab, the
+> the full Protect-mode egress-block demonstration — that build is
+> **[LAB-MVP-SETUP.md](LAB-MVP-SETUP.md)**. In this local build, the
 > enforced boundary is the NetworkPolicy you just proved in step 5.
 
 ## 7. The AI tier — on-prem explain (~10 min, optional)

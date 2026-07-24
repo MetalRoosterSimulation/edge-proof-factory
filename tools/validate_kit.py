@@ -131,7 +131,8 @@ def main(kit):
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     portable_docs = [
         "README.md",
-        os.path.join("docs", "LAB-SETUP.md"),
+        os.path.join("docs", "LOCAL-SETUP.md"),
+        os.path.join("docs", "LAB-MVP-SETUP.md"),
         os.path.join("docs", "reference-architectures", "RA-01-on-prem.md"),
         os.path.join("docs", "reference-architectures", "RA-02-hybrid-aws.md"),
     ]

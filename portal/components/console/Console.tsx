@@ -361,7 +361,7 @@ export function Console() {
         </a>
         <a
           className="hover:text-[var(--c-ink2)]"
-          href="https://github.com/MetalRoosterSimulation/edge-proof-factory/blob/main/docs/LAB-SETUP.md"
+          href="https://github.com/MetalRoosterSimulation/edge-proof-factory/blob/main/docs/LOCAL-SETUP.md"
         >
           Build this on-prem (lab guide)
         </a>

@@ -10,8 +10,10 @@ single-node K3s cluster your laptop can run.
 console, no install. Simulated fab, same SPC model as the on-prem kit,
 golden-parity-tested.
 
-**[🔧 Build it on-prem in ~45 minutes](docs/LAB-SETUP.md)** — the dummy-proof
-lab guide. If you can copy-paste into a terminal, you can run this.
+**[🔧 Build it on-prem in ~45 minutes](docs/LOCAL-SETUP.md)** — the
+dummy-proof guide for your own machine (k3d). If you can copy-paste into a
+terminal, you can run this. Building in a formal enterprise lab on real
+single-node k3s: **[docs/LAB-MVP-SETUP.md](docs/LAB-MVP-SETUP.md)**.
 
 ---
 
@@ -56,7 +58,9 @@ make down                    # clean teardown
 ```
 
 Full walkthrough with per-step checkpoints, the NeuVector exercise, the AI
-tier, and troubleshooting: **[docs/LAB-SETUP.md](docs/LAB-SETUP.md)**.
+tier, and troubleshooting: **[docs/LOCAL-SETUP.md](docs/LOCAL-SETUP.md)**
+(laptop/k3d) or **[docs/LAB-MVP-SETUP.md](docs/LAB-MVP-SETUP.md)**
+(enterprise lab, real k3s).
 
 ## Repository map
 
@@ -64,7 +68,8 @@ tier, and troubleshooting: **[docs/LAB-SETUP.md](docs/LAB-SETUP.md)**.
 |---|---|
 | `reference-kits/semiconductor-predictive-maintenance/` | The Proof Kit: runnable demo (`demo/`) + partner hand-off kit (`handoff/`) |
 | `portal/` | The live console app (Next.js) — the in-browser simulation deployed to Vercel |
-| `docs/LAB-SETUP.md` | Step-by-step on-prem lab rebuild guide |
+| `docs/LOCAL-SETUP.md` | Step-by-step rebuild guide for your own machine (k3d) |
+| `docs/LAB-MVP-SETUP.md` | Rebuild guide for a formal enterprise lab (real single-node k3s, full NeuVector enforcement) |
 | `docs/reference-architectures/` | VP-approval-grade 1,000-sensor reference architectures: [RA-01 on-prem](docs/reference-architectures/RA-01-on-prem.md) ([PDF](docs/reference-architectures/RA-01-on-prem.pdf)) · [RA-02 hybrid AWS](docs/reference-architectures/RA-02-hybrid-aws.md) ([PDF](docs/reference-architectures/RA-02-hybrid-aws.pdf)) |
 | `docs/` | Sourced SUSE stack facts, doctrine, factory process (`docs/factory/`) |
 | `integrations/rancher-mcp-server/` | Optional: MCP server for Rancher fleet management (Day-2 appendix) |
@@ -83,7 +88,7 @@ tier, and troubleshooting: **[docs/LAB-SETUP.md](docs/LAB-SETUP.md)**.
 - **SUSE AI** — the inference + explanation tier; Ollama on-cluster via
   `make ai`, same prompt contract as the hosted stand-in in the live demo.
 - **Rancher Prime / Fleet** — optional Day-2 fleet management
-  ([appendix](docs/LAB-SETUP.md#appendix-day-2--rancher--fleet-gitops)).
+  ([appendix](docs/LAB-MVP-SETUP.md#appendix-day-2--rancher--fleet-gitops)).
 
 ## License & provenance
 
