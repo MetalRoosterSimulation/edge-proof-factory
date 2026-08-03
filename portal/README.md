@@ -7,6 +7,13 @@ TypeScript and executed entirely in the visitor's browser. No backend at
 runtime; the only serverless code is the optional AI stand-in
 (`/api/explain`, `/api/chat`).
 
+`/corridor` is a second, self-contained simulation console: the
+corridor-vegetation-inspection kit's ground-side pipeline (per-station upload,
+bounded working storage with alert-then-backpressure, swappable vision scoring,
+outbound-only queues across a severable WAN, evidence records with traceability
+metadata). It runs on its own core in `lib/corridor/` and imports nothing from
+`lib/demo/` — the parity contract below is untouched by it.
+
 Documentation lives in the repo root ([README](../README.md),
 [docs/LOCAL-SETUP.md](../docs/LOCAL-SETUP.md),
 [docs/LAB-MVP-SETUP.md](../docs/LAB-MVP-SETUP.md)) — not in this app. Old portal

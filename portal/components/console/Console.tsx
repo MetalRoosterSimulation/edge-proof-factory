@@ -353,6 +353,9 @@ export function Console() {
           </div>
         </details>
         <span className="flex-1" />
+        <a className="hover:text-[var(--c-ink2)]" href="/corridor">
+          Corridor inspection demo
+        </a>
         <a
           className="hover:text-[var(--c-ink2)]"
           href="https://github.com/MetalRoosterSimulation/edge-proof-factory"
