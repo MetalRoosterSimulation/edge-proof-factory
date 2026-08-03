@@ -553,3 +553,39 @@ in one pass:
   non-commercial fair-use terms — decide whether to move the project to a
   Pro team (~$20/mo, also removes the 300s/daily-cron caps if a
   server-assisted mode is ever wanted). User decision.
+
+## Phase 17 — /corridor portal simulation (corridor-vegetation-inspection) (2026-08-03)
+
+User-directed: the corridor-vegetation-inspection Proof Kit request arrived with a
+"no local builds on this host" constraint — no docker, no k3d, no `make up`. Under
+non-negotiable 1 (runnable, not described; no proof, no ship) that makes the
+runnable kit unshippable for now, so **no `reference-kits/corridor-vegetation-inspection/`
+was created**; what shipped is the sanctioned presentation layer: a second portal
+simulation route, built by Vercel on push.
+
+- `/corridor` — in-browser, seeded simulation of the ground-side pipeline, faithful
+  to the intel-to-opp architecture package (technologent-energy-utilities-
+  vegetation-inspection run, gate-passed 2026-08-03): one inbound upload flow under
+  a per-station credential (revoked-station attempt → 401), finite working storage
+  with capacity alert at 80% then ingest backpressure at 95% (scored imagery and
+  queued findings survive; storage frees only when evidence lands in the archive —
+  the single-node trade-off kept honest), swappable third-party vision container
+  (live swap changes only the model version findings carry), outbound-only
+  findings/evidence queues across a severable WAN (sever/restore controls; queues
+  grow, then drain), ops-side work orders + custody archive with
+  span/flight/model-version/disposition traceability, and truth notes for the
+  out-of-scope flight tier and the no-path-to-protection/control separation.
+- Own core `portal/lib/corridor/sim.ts` — zero imports from `lib/demo/`; the
+  FabEdge golden-parity contract is untouched. Two-part honesty labeling per the
+  portal convention (SIMULATED SITE chip + "What is real here?" disclosure, with
+  the production mapping stated from the repo's stack notes). One footer link
+  added on the FabEdge console.
+- Receipts: `tsc --noEmit` 0 errors outside the stale local `.next` cache; eslint
+  0 errors on all touched files (12 initial findings fixed: effect-sync setState,
+  ref-in-render, html-anchor navigation); `validate_kit.py` still 23 pass / 0
+  warn / 0 FAIL; Vercel deployment dpl_HHDd2c2ZyfScasCZzQgYxBBUAEzP READY on
+  production; live check `https://edge-ai-demo.vercel.app/corridor` → 200 with
+  the simulation page. No local `next build` was run.
+- Open thread: the runnable corridor kit (RUN-A-NEW-KIT stages 0–5) remains
+  to-build on a host where docker/k3d builds are permitted; the paste-ready
+  design brief lives in the intel-to-opp run's owner brief.
