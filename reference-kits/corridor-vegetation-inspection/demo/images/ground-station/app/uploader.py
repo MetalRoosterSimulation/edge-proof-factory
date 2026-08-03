@@ -49,6 +49,8 @@ def upload(idx, rng):
             return resp.status
     except urllib.error.HTTPError as exc:
         return exc.code
+    except (urllib.error.URLError, OSError):
+        return 599  # network-level failure; counted, never fatal
 
 
 def main():

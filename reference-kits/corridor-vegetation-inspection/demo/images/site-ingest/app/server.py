@@ -129,6 +129,10 @@ class Handler(BaseHTTPRequestHandler):
         if not self.path.startswith("/upload"):
             self._json(404, {"error": "not found"})
             return
+        # Drain the body BEFORE any refusal: closing the socket mid-upload
+        # gives the client a broken pipe instead of the status code.
+        length = int(self.headers.get("Content-Length", "0"))
+        data = self.rfile.read(length) if length else b""
         station = self.headers.get("X-Station", "")
         auth = self.headers.get("Authorization", "")
         token = auth[7:] if auth.startswith("Bearer ") else ""
@@ -137,8 +141,6 @@ class Handler(BaseHTTPRequestHandler):
                 _counters["rejected_401"] += 1
             self._json(401, {"error": "credential refused", "station": station})
             return
-        length = int(self.headers.get("Content-Length", "0"))
-        data = self.rfile.read(length) if length else b""
         size_mb = len(data) / (1024.0 * 1024.0)
         u = used_mb()
         ok, state = should_accept(size_mb, u, LIMIT_MB)
