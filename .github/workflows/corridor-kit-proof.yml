@@ -1,0 +1,97 @@
+# Proof environment for the corridor-vegetation-inspection kit.
+#
+# This factory's rule is "runnable, not described — no proof, no ship."
+# This workflow IS the proof: a fresh single-node k3d cluster on every run,
+# the full campaign / revoked-credential / WAN-sever / backpressure / heal
+# sequence asserted end-to-end, the kit gate (validate_kit.py), and a
+# console screenshot committed back to handoff/assets on success.
+name: corridor-kit-proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "reference-kits/corridor-vegetation-inspection/**"
+      - ".github/workflows/corridor-kit-proof.yml"
+      - "tools/validate_kit.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: corridor-kit-proof
+  cancel-in-progress: false
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: reference-kits/corridor-vegetation-inspection/demo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k3d
+        run: curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+        working-directory: .
+
+      - name: Host-side unit tests (no cluster)
+        run: make test
+
+      - name: make up — fresh single-node cluster
+        run: make up
+
+      - name: End-to-end proof (campaign / 401 / sever / backpressure / heal)
+        run: bash tests/e2e_proof.sh
+
+      - name: Kit gate — validate_kit.py
+        run: python3 tools/validate_kit.py reference-kits/corridor-vegetation-inspection
+        working-directory: .
+
+      - name: Console screenshot
+        run: |
+          google-chrome --headless=new --disable-gpu --no-sandbox \
+            --window-size=1400,900 --hide-scrollbars \
+            --screenshot=/tmp/corridor-console.png \
+            --virtual-time-budget=8000 \
+            http://localhost:18082/
+          ls -la /tmp/corridor-console.png
+
+      - name: Upload proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: corridor-proof
+          path: |
+            /tmp/corridor-console.png
+          if-no-files-found: ignore
+
+      - name: Commit screenshot to handoff/assets (proof receipt)
+        if: success() && github.event_name == 'push'
+        working-directory: .
+        run: |
+          cp /tmp/corridor-console.png \
+            reference-kits/corridor-vegetation-inspection/handoff/assets/corridor-console.png
+          git config user.name "corridor-kit-proof (CI)"
+          git config user.email "actions@github.com"
+          git add reference-kits/corridor-vegetation-inspection/handoff/assets/corridor-console.png
+          git diff --cached --quiet && exit 0
+          git commit -m "CI: corridor kit proof screenshot (run ${{ github.run_id }}) [skip ci]"
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Diagnostics on failure
+        if: failure()
+        working-directory: .
+        run: |
+          echo "== pods =="; kubectl get pods -A -o wide || true
+          echo "== site describe =="; kubectl -n corridor-site describe deploy/site || true
+          echo "== events =="; kubectl get events -A --sort-by=.lastTimestamp | tail -40 || true
+          for c in site-ingest vision-scorer findings-relay; do
+            echo "== logs $c =="; kubectl -n corridor-site logs deploy/site -c $c --tail=60 || true
+          done
+          echo "== logs ops-center =="
+          kubectl -n corridor-ops logs deploy/ops-center --tail=60 || true
+          echo "== netpol =="; kubectl -n corridor-site get networkpolicy || true
