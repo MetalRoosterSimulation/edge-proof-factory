@@ -72,6 +72,7 @@ jobs:
         if: success() && github.event_name == 'push'
         working-directory: .
         run: |
+          mkdir -p reference-kits/corridor-vegetation-inspection/handoff/assets
           cp /tmp/corridor-console.png \
             reference-kits/corridor-vegetation-inspection/handoff/assets/corridor-console.png
           git config user.name "corridor-kit-proof (CI)"
