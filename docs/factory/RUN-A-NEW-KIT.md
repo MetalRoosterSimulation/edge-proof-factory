@@ -7,7 +7,7 @@ Use case: [Partner] / [Industry] / [Use case]
 
 ## Stage 0 — seed from the sibling factories (don't re-research)
 - Pull the architecture + build process + PS playbook from
-  `~/Work/use-case-factory/output/<partner>/<...>/` if it exists.
+  `~/Work/intel-to-opp/output/<partner>/<...>/` if it exists.
 - Pull the use-case pattern + economics from
   `~/Work/bd-trigger-to-deal-factory/Edge/docs/use-case-library.md` and
   `engagement-economics.md`.

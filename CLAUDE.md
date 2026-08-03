@@ -4,7 +4,7 @@ Read this first. This factory turns a SUSE Edge/AI use case into a **runnable
 minimal-footprint MVP** + a **partner hand-off kit** ("Proof Kit"). It is the
 build/demo/hand-off sibling of the paper-producing factories:
 `~/Work/bd-trigger-to-deal-factory/Edge` (BD messaging) and
-`~/Work/use-case-factory` (architecture packages). It does not duplicate them — it
+`~/Work/intel-to-opp` (architecture packages). It does not duplicate them — it
 consumes their output (use case, architecture, economics) and produces the proof.
 
 ## Non-negotiables
@@ -22,7 +22,7 @@ consumes their output (use case, architecture, economics) and produces the proof
    robust, end-to-end as an adjective). Economics services-first, resale attached.
 5. **No fabrication.** Product facts come from `docs/suse-edge-ai-stack.md`
    (for anything missing, grep the shared corpus at
-   `~/Work/use-case-factory/docs/suse-brain.md` — it's ~1.5 MB, grep the topic,
+   `~/Work/intel-to-opp/docs/suse-brain.md` — it's ~1.5 MB, grep the topic,
    never read it whole; this repo deliberately carries no copy) with sources.
    Unknown numbers stay as ranges or `[FILL]`; never invent node counts,
    durations, prices.
