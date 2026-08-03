@@ -7,9 +7,11 @@ pytest. Python 3.6 compatible.
 import os
 import sys
 
+# Only the scorer's tree goes on sys.path (the generator is loaded by file
+# path below — putting both on the path would shadow one `app` package with
+# the other).
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "..", "images", "vision-scorer"))
-sys.path.insert(0, os.path.join(_HERE, "..", "images", "ground-station"))
 
 from app.vegmodel import (  # noqa: E402
     DEFAULT_MODEL_VERSION,
