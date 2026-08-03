@@ -1,0 +1,50 @@
+# The far side of the WAN: work-order handoff + custody-archive stub.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-center
+  namespace: corridor-ops
+  labels:
+    app: ops-center
+    tier: ops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ops-center
+  template:
+    metadata:
+      labels:
+        app: ops-center
+        tier: ops
+    spec:
+      containers:
+        - name: ops-center
+          image: edge-proof/ops-center:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ops-center
+  namespace: corridor-ops
+  labels:
+    app: ops-center
+spec:
+  selector:
+    app: ops-center
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090

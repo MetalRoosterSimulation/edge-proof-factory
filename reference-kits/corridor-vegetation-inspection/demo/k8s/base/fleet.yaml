@@ -1,0 +1,4 @@
+defaultNamespace: corridor-site
+helm:
+  releaseName: corridor-kit
+  takeOwnership: true

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: corridor-site
+  labels:
+    app.kubernetes.io/part-of: edge-proof-kit
+    use-case: corridor-vegetation-inspection
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: corridor-ops
+  labels:
+    app.kubernetes.io/part-of: edge-proof-kit
+    use-case: corridor-vegetation-inspection

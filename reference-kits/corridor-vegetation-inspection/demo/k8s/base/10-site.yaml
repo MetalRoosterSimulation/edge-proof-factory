@@ -1,0 +1,109 @@
+# The corridor edge site: one single-node pod holding the ground-side
+# pipeline. The three containers share the /work volume — the demo's
+# working storage. In production these are separate concerns on the same
+# single-node cluster (SL Micro + K3s via one EIB image); the colocation is
+# a footprint simplification stated in the component map.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: site
+  namespace: corridor-site
+  labels:
+    app: site
+    tier: edge-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: site
+  template:
+    metadata:
+      labels:
+        app: site
+        tier: edge-site
+    spec:
+      volumes:
+        - name: work
+          emptyDir:
+            sizeLimit: 128Mi
+      containers:
+        - name: site-ingest
+          image: edge-proof/site-ingest:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WORK_DIR
+              value: /work
+            - name: WORKING_LIMIT_MB
+              value: "24"
+            - name: STATION_TOKENS
+              value: "GS-11=tok-corridor-a,GS-12=tok-corridor-b"
+            - name: OPS_STATUS_URL
+              value: "http://ops-center.corridor-ops.svc.cluster.local:8090/status"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: work
+              mountPath: /work
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 300m, memory: 160Mi }
+        - name: vision-scorer
+          # The swappable third-party workload: replace this container (or
+          # just MODEL_VERSION) and nothing else in the kit changes.
+          image: edge-proof/vision-scorer:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WORK_DIR
+              value: /work
+            - name: MODEL_VERSION
+              value: "1.4"
+          volumeMounts:
+            - name: work
+              mountPath: /work
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+        - name: findings-relay
+          image: edge-proof/findings-relay:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WORK_DIR
+              value: /work
+            - name: OPS_URL
+              value: "http://ops-center.corridor-ops.svc.cluster.local:8090"
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: work
+              mountPath: /work
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: site-ingest
+  namespace: corridor-site
+  labels:
+    app: site
+spec:
+  type: NodePort
+  selector:
+    app: site
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      nodePort: 30082

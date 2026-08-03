@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# No global namespace: this kit deliberately spans two namespaces
+# (corridor-site = the edge site, corridor-ops = the far side of the WAN);
+# every resource carries its namespace explicitly.
+resources:
+  - 00-namespaces.yaml
+  - 10-site.yaml
+  - 20-ops.yaml
+  - 30-networkpolicies.yaml
+  - 35-allow-wan.yaml

@@ -1,0 +1,16 @@
+# The WAN. Present = the site may dial out to the ops side (outbound only —
+# no policy anywhere admits inbound management traffic to the site).
+# `make fault` deletes this policy; `make heal` re-applies it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-wan
+  namespace: corridor-site
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: corridor-ops
