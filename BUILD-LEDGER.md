@@ -589,3 +589,37 @@ simulation route, built by Vercel on push.
 - Open thread: the runnable corridor kit (RUN-A-NEW-KIT stages 0–5) remains
   to-build on a host where docker/k3d builds are permitted; the paste-ready
   design brief lives in the intel-to-opp run's owner brief.
+
+## Phase 18 — corridor-vegetation-inspection kit SHIPPED, proof via GitHub Actions (2026-08-03)
+
+Closes Phase 17's open thread. The kit was authored entirely without local
+builds (user directive); the proof environment is GitHub Actions — a first for
+this factory, and arguably stronger than laptop proof: the entire sequence
+re-runs on every future change to the kit, the workflow, or the gate.
+
+- **Kit:** `reference-kits/corridor-vegetation-inspection/` — five openly-pullable
+  CPU-only images (site-ingest / vision-scorer / findings-relay / ops-center /
+  ground-station), two namespaces behind a default-deny egress spine where
+  `35-allow-wan.yaml` IS the WAN (`make fault` deletes it — a real
+  NetworkPolicy removal, not a mock), scoring model + storage rules unit-tested
+  on the host, full handoff docs pinned to Edge 3.6.1.
+- **Proof (run 30856140082, ✓ 2m19s; sequence first fully passed in run
+  30855897353):** 13/13 unit tests; `make up` cold on a fresh k3d cluster in
+  ~70 s; e2e 11/11 — campaign of 12 → 6 work orders + 12 evidence records and
+  queues drained; revoked station → exactly one 401, nothing ingested; WAN
+  severed → site kept ingesting (24 accepted) while ops went unreachable and
+  the queue grew; oversized campaign under severed WAN → capacity ALERT then
+  46× 507 BACKPRESSURE with `alert_before_backpressure=True` and queued
+  findings intact; heal → full drain, 16 work orders, 38 records / 33.4 MB
+  archived, storage freed to OK. `validate_kit.py`: green. Console screenshot
+  committed by CI to `handoff/assets/corridor-console.png` (run 30856140082).
+- **Iterations to green (all found by CI, none run locally):** (1) sys.path
+  shadowing in test_vegmodel (two `app` packages); (2) refusing an upload
+  without draining the body gives the client BrokenPipeError instead of the
+  401 — ingest now drains before refusing (durable lesson for any HTTP-refusal
+  demo); (3) empty `handoff/assets/` is untracked by git — mkdir in CI before
+  the screenshot copy.
+- **Credential lesson (durable):** the repo's git credential helper (gh OAuth)
+  lacked the `workflow` scope, and the GitHub MCP token cannot write workflow
+  files either; the user granted `gh auth refresh -s workflow` interactively.
+  Workflow-file pushes need that scope — nothing else in this repo does.
