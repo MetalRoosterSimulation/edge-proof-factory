@@ -367,6 +367,9 @@ export function CorridorConsole() {
         <Link className="underline-offset-2 hover:text-[var(--c-ink)] hover:underline" href="/">
           FabEdge console (semiconductor kit) →
         </Link>
+        <Link className="underline-offset-2 hover:text-[var(--c-ink)] hover:underline" href="/site-inference">
+          Site AI Inference Substrate →
+        </Link>
         <span className="ml-auto">corridor-vegetation-inspection · edge-proof-factory</span>
       </footer>
     </div>
