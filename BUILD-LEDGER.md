@@ -662,3 +662,30 @@ new `make reset` (fresh demo state without a cluster rebuild) and
 - Zero fix iterations this time — the corridor kit's three CI lessons
   (path shadowing, drain-before-refuse, untracked empty dirs) were all
   pre-applied in authoring.
+
+## Phase 20 — browser-demo walkthrough made a factory standard (2026-08-05, user directive)
+
+Every kit that ships a portal simulation page now also ships
+`browser-demo-walkthrough.md` + generated PDF at the kit root: the standard
+rep-facing demo script (demo URL + simulation-vs-real boundary up front,
+what-is-demonstrated mapped to on-screen elements, step-by-step
+what-to-do / what-they-see / plain "Say:" lines, honest answers to expected
+questions, discovery-first close).
+
+- **New tool:** `tools/md2pdf.py` — self-contained md→PDF renderer
+  (stdlib + headless Chrome; unwraps soft-wrapped paragraphs) so the factory
+  no longer borrows the sibling factory's converter. The md is the source of
+  truth; PDFs are always regenerated.
+- **Gate:** `validate_kit.py` now scans `browser-demo-walkthrough.md` (same
+  banned-word / marker / machine-path rules as handoff docs — it is
+  rep-facing) and fails a kit whose md lacks the generated PDF beside it.
+  All three kits green under the new check: substrate 25 / corridor 24 /
+  semiconductor 23 pass, 0 FAIL (semiconductor has no walkthrough — the
+  check applies only where a portal demo exists; corridor's shipped pair
+  passes retroactively).
+- **Doctrine:** RUN-A-NEW-KIT.md Stage 4 carries the content contract;
+  CLAUDE.md layout names the artifact.
+- **Shipped alongside:** the site-inference-substrate walkthrough
+  (`reference-kits/site-inference-substrate/browser-demo-walkthrough.{md,pdf}`)
+  covering the /site-inference simulation: the three-policy outage story,
+  the seal/verify/tamper evidence beat, and the close on the policy table.

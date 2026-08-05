@@ -127,6 +127,29 @@ def main(kit):
                     % (f, ", ".join(bad)))
         ok("voice/fabrication scan complete")
 
+    # --- browser-demo walkthrough (standard when a kit has a portal demo) ---
+    # If browser-demo-walkthrough.md exists at the kit root, the generated
+    # PDF must sit beside it, and the md follows the same voice / marker /
+    # portability rules as handoff docs (it is rep-facing).
+    walkthrough = os.path.join(kit, "browser-demo-walkthrough.md")
+    if os.path.isfile(walkthrough):
+        if not os.path.isfile(os.path.join(kit, "browser-demo-walkthrough.pdf")):
+            err("browser-demo-walkthrough.md present but its generated PDF "
+                "is missing (tools/md2pdf.py renders it)")
+        text = _read(walkthrough)
+        low = text.lower()
+        for w in BANNED:
+            if re.search(r"\b%s\b" % w, low):
+                err("banned filler word '%s' in browser-demo-walkthrough.md" % w)
+        if MARKER.search(text):
+            err("unresolved marker %s in browser-demo-walkthrough.md"
+                % MARKER.search(text).group(0))
+        bad = [pat for pat in ("~/Work/", "/home/kibby") if pat in text]
+        if bad:
+            err("browser-demo-walkthrough.md contains machine-specific "
+                "paths: %s" % ", ".join(bad))
+        ok("browser-demo walkthrough pair present and clean")
+
     # --- model unit tests ---
     tests = os.path.join(demo, "tests")
     test_files = [os.path.join(tests, f) for f in os.listdir(tests)

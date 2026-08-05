@@ -43,6 +43,16 @@ Use case: [Partner] / [Industry] / [Use case]
   SCALE), owner-tagged.
 - `handoff/03-production-footprint.md` — sourced floors; call out where a GPU
   changes the number.
+- **Browser-demo walkthrough (STANDARD whenever the kit has a portal simulation
+  page):** `browser-demo-walkthrough.md` at the kit root + its generated PDF,
+  rendered with `tools/md2pdf.py` (the md is the source of truth — never edit
+  the PDF). Content contract: the demo URL and the simulation-vs-real boundary
+  stated up front; "What is being demonstrated" mapping each platform property
+  to what is on screen; a step-by-step walkthrough (what to do / what the
+  customer sees / a plain "Say:" line per step); honest answers to the
+  questions to expect; a discovery-first "After the demo" close. Same voice /
+  marker / portability rules as handoff docs — `validate_kit.py` scans the md
+  and requires the PDF beside it.
 - Voice: pilot's manual. No coaching, no banned filler, economics services-first.
 
 ## Stage 5 — validate + commit

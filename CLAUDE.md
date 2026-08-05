@@ -33,7 +33,10 @@ consumes their output (use case, architecture, economics) and produces the proof
 ## Layout
 - `reference-kits/<use-case>/demo/` — runnable MVP (images/, k8s/, Makefile, tests/).
 - `reference-kits/<use-case>/handoff/` — 00 runbook, 01 component-map, 02 scale-up,
-  03 footprint, README, assets/.
+  03 footprint, README, assets/. Kits with a portal simulation page also carry
+  `browser-demo-walkthrough.md` + generated PDF at the kit root (the standard
+  rep-facing demo script; `tools/md2pdf.py` renders it, the gate enforces the
+  pair).
 - `integrations/rancher-mcp-server/` — Rancher fleet MCP server (reusable).
 - `docs/` — project-brief, suse-edge-ai-stack, handoff-doctrine, footprint-rules.
 - `templates/` — component-map / runbook / scale-up templates for new kits.
