@@ -623,3 +623,42 @@ re-runs on every future change to the kit, the workflow, or the gate.
   lacked the `workflow` scope, and the GitHub MCP token cannot write workflow
   files either; the user granted `gh auth refresh -s workflow` interactively.
   Workflow-file pushes need that scope — nothing else in this repo does.
+
+## Phase 19 — site-inference-substrate kit SHIPPED, CI-proven first try (2026-08-05)
+
+Third reference kit, grounded in intel-to-opp's site-inference-substrate
+architecture package (boundary-flow table, model-release path, four site
+classes). Partner/customer-neutral throughout. Corridor-kit machinery reused
+as designed: Makefile shape, default-deny egress spine with the severable
+allow-wan policy, Fleet bundle, and the GitHub Actions proof pattern — plus
+new `make reset` (fresh demo state without a cluster rebuild) and
+`make verify-evidence` (in-place WORM chain verification).
+
+- **Kit:** six openly-pullable CPU-only images across three namespaces
+  (substrate-dmz read-only historian replica with looping synthetic tags →
+  substrate-site enclave: KServe-v2 serving with three models whose
+  outage_policy is model metadata, outbound-only relay applying
+  continue/flag/suppress at enqueue, evidence collector sealing signed
+  hash-chained bundles 0444 to a WORM dir → substrate-central ML-ingest +
+  chain-verifying evidence store). The DMZ read is a separate NetworkPolicy
+  from the uplink, so `make fault` proves scoring continues on live local
+  data. 16 host-side unit tests incl. tamper/gap/reorder detection and a
+  byte-identity guard on the shared evchain copy.
+- **Proof (run 31027551139, ✓ green FIRST TRY, 1m35s):** 16/16 unit tests;
+  `make up` cold; e2e 19/19 — three models scoring with three distinct
+  policies visible in config; WORM rewrite attempt refused; chain verified
+  in place and centrally; uplink severed → scoring continued (+20 in
+  seconds), outputs queued, flag-policy outputs marked, suppress-policy
+  outputs held, evidence kept sealing locally; healed → drained, central
+  reconciled (132 outputs, 21 flagged), every sealed bundle verified,
+  chain_ok=True end to end, and held stayed held (21). Receipts:
+  scored_total=153 delivered=132 flagged=21 held=21 evidence 3/3.
+  validate_kit.py green; CI committed the console screenshot.
+- **Portal:** `/site-inference` — "Site AI Inference Substrate" — third
+  simulation console on its own core (lib/substrate/, no lib/demo imports);
+  adds live seal/verify/tamper controls so chain detection is demonstrable;
+  the on-page checksum is labeled a toy stand-in for the kit's HMAC and
+  production PKI. Footer links added on both existing consoles.
+- Zero fix iterations this time — the corridor kit's three CI lessons
+  (path shadowing, drain-before-refuse, untracked empty dirs) were all
+  pre-applied in authoring.
