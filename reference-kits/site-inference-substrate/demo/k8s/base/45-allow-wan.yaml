@@ -1,0 +1,18 @@
+# The uplink. Present = the enclave may dial out to the central side.
+# `make fault` deletes this policy (severed uplink: scoring continues on
+# the DMZ feed, outputs and evidence queue per policy); `make heal`
+# re-applies it. Note the DMZ read path is a separate policy — cutting the
+# uplink never cuts the local data feed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-wan
+  namespace: substrate-site
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: substrate-central

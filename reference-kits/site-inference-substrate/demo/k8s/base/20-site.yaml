@@ -1,0 +1,127 @@
+# The site analytics enclave: adapter, serving, relay, evidence collector
+# on one single-node pod. /work is the buffering volume; /worm is the
+# write-once evidence directory — the relay mounts it read-only, and the
+# collector drops file write permission after sealing each bundle.
+# Production separates these concerns on the same single-node cluster
+# (one sealed EIB image); the colocation is a footprint simplification
+# stated in the component map.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: site
+  namespace: substrate-site
+  labels:
+    app: site
+    tier: enclave
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: site
+  template:
+    metadata:
+      labels:
+        app: site
+        tier: enclave
+    spec:
+      volumes:
+        - name: work
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: worm
+          emptyDir:
+            sizeLimit: 64Mi
+      containers:
+        - name: feature-adapter
+          image: edge-proof/feature-adapter:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REPLICA_URL
+              value: "http://historian-replica.substrate-dmz.svc.cluster.local:8070"
+            - name: READONLY_TOKEN
+              value: "tok-replica-readonly"
+          volumeMounts:
+            - name: work
+              mountPath: /work
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 300m, memory: 128Mi }
+        - name: inference-serving
+          # The KServe-class serving tier. Swap this container (or its
+          # models) and the platform contract — /v2/* — does not change.
+          image: edge-proof/inference-serving:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          readinessProbe:
+            httpGet:
+              path: /v2/health/ready
+              port: 8081
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 500m, memory: 192Mi }
+        - name: uplink-relay
+          image: edge-proof/uplink-relay:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CENTRAL_URL
+              value: "http://central.substrate-central.svc.cluster.local:8090"
+          ports:
+            - containerPort: 8083
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: worm
+              mountPath: /worm
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8083
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 300m, memory: 128Mi }
+        - name: evidence-collector
+          image: edge-proof/evidence-collector:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SITE_ID
+              value: "SITE-01"
+            - name: APPLIED_REVISION
+              value: "demo-rev-3f2a1d"
+            - name: INTERVAL_S
+              value: "15"
+            - name: EVIDENCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evidence-key
+                  key: EVIDENCE_KEY
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: worm
+              mountPath: /worm
+          resources:
+            requests: { cpu: 25m, memory: 48Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: site-console
+  namespace: substrate-site
+  labels:
+    app: site
+spec:
+  type: NodePort
+  selector:
+    app: site
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083
+      nodePort: 30083

@@ -1,0 +1,19 @@
+# DEMO key. Production issues a per-site signing key from the customer's
+# PKI at provisioning (private key site-side, public key registered
+# centrally); this shared demo secret stands in for both ends and the
+# simplification is stated in the component map.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-key
+  namespace: substrate-site
+stringData:
+  EVIDENCE_KEY: demo-site-signing-key
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-key
+  namespace: substrate-central
+stringData:
+  EVIDENCE_KEY: demo-site-signing-key

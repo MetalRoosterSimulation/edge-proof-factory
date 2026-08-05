@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# No global namespace: the kit spans three (substrate-dmz / substrate-site /
+# substrate-central — the DMZ replica, the analytics enclave, the far side
+# of the uplink); every resource carries its namespace explicitly.
+resources:
+  - 00-namespaces.yaml
+  - 05-evidence-key.yaml
+  - 10-dmz.yaml
+  - 20-site.yaml
+  - 30-central.yaml
+  - 40-networkpolicies.yaml
+  - 45-allow-wan.yaml

@@ -1,0 +1,56 @@
+# The DMZ read-only replica tier: the analytics side reads it and can
+# never write through it. A server only — it initiates nothing.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: historian-replica
+  namespace: substrate-dmz
+  labels:
+    app: historian-replica
+    tier: dmz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: historian-replica
+  template:
+    metadata:
+      labels:
+        app: historian-replica
+        tier: dmz
+    spec:
+      containers:
+        - name: historian-replica
+          image: edge-proof/historian-replica:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: READONLY_TOKEN
+              value: "tok-replica-readonly"
+            - name: SEED
+              value: "42"
+          ports:
+            - containerPort: 8070
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8070
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: historian-replica
+  namespace: substrate-dmz
+  labels:
+    app: historian-replica
+spec:
+  selector:
+    app: historian-replica
+  ports:
+    - name: http
+      port: 8070
+      targetPort: 8070

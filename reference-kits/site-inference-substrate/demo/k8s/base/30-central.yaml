@@ -1,0 +1,57 @@
+# The far side of the uplink: ML-platform ingestion + evidence store, one
+# demo container (colocation stated in the component map).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: central
+  namespace: substrate-central
+  labels:
+    app: central
+    tier: central
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: central
+  template:
+    metadata:
+      labels:
+        app: central
+        tier: central
+    spec:
+      containers:
+        - name: central
+          image: edge-proof/central-stub:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: EVIDENCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evidence-key
+                  key: EVIDENCE_KEY
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8090
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 25m, memory: 32Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: central
+  namespace: substrate-central
+  labels:
+    app: central
+spec:
+  selector:
+    app: central
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090

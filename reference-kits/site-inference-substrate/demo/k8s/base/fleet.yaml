@@ -1,0 +1,4 @@
+defaultNamespace: substrate-site
+helm:
+  releaseName: substrate-kit
+  takeOwnership: true

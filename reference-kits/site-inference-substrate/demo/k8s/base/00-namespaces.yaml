@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: substrate-dmz
+  labels:
+    app.kubernetes.io/part-of: edge-proof-kit
+    use-case: site-inference-substrate
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: substrate-site
+  labels:
+    app.kubernetes.io/part-of: edge-proof-kit
+    use-case: site-inference-substrate
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: substrate-central
+  labels:
+    app.kubernetes.io/part-of: edge-proof-kit
+    use-case: site-inference-substrate

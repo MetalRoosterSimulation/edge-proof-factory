@@ -1,0 +1,98 @@
+# Proof environment for the site-inference-substrate kit.
+#
+# Same doctrine as corridor-kit-proof: "runnable, not described — no proof,
+# no ship." Fresh single-node k3d cluster per run, the scoring / evidence /
+# uplink-sever / policy / reconcile sequence asserted end-to-end, the kit
+# gate, and a console screenshot committed back on success.
+name: substrate-kit-proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "reference-kits/site-inference-substrate/**"
+      - ".github/workflows/substrate-kit-proof.yml"
+      - "tools/validate_kit.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: substrate-kit-proof
+  cancel-in-progress: false
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: reference-kits/site-inference-substrate/demo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k3d
+        run: curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+        working-directory: .
+
+      - name: Host-side unit tests (no cluster)
+        run: make test
+
+      - name: make up — fresh single-node cluster
+        run: make up
+
+      - name: End-to-end proof (scoring / evidence / sever / policies / reconcile)
+        run: bash tests/e2e_proof.sh
+
+      - name: Kit gate — validate_kit.py
+        run: python3 tools/validate_kit.py reference-kits/site-inference-substrate
+        working-directory: .
+
+      - name: Console screenshot
+        run: |
+          google-chrome --headless=new --disable-gpu --no-sandbox \
+            --window-size=1400,900 --hide-scrollbars \
+            --screenshot=/tmp/substrate-console.png \
+            --virtual-time-budget=8000 \
+            http://localhost:18083/
+          ls -la /tmp/substrate-console.png
+
+      - name: Upload proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: substrate-proof
+          path: |
+            /tmp/substrate-console.png
+          if-no-files-found: ignore
+
+      - name: Commit screenshot to handoff/assets (proof receipt)
+        if: success() && github.event_name == 'push'
+        working-directory: .
+        run: |
+          mkdir -p reference-kits/site-inference-substrate/handoff/assets
+          cp /tmp/substrate-console.png \
+            reference-kits/site-inference-substrate/handoff/assets/substrate-console.png
+          git config user.name "substrate-kit-proof (CI)"
+          git config user.email "actions@github.com"
+          git add reference-kits/site-inference-substrate/handoff/assets/substrate-console.png
+          git diff --cached --quiet && exit 0
+          git commit -m "CI: substrate kit proof screenshot (run ${{ github.run_id }}) [skip ci]"
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Diagnostics on failure
+        if: failure()
+        working-directory: .
+        run: |
+          echo "== pods =="; kubectl get pods -A -o wide || true
+          echo "== events =="; kubectl get events -A --sort-by=.lastTimestamp | tail -40 || true
+          for c in feature-adapter inference-serving uplink-relay evidence-collector; do
+            echo "== logs $c =="; kubectl -n substrate-site logs deploy/site -c $c --tail=60 || true
+          done
+          echo "== logs historian-replica =="
+          kubectl -n substrate-dmz logs deploy/historian-replica --tail=40 || true
+          echo "== logs central =="
+          kubectl -n substrate-central logs deploy/central --tail=60 || true
+          echo "== netpol =="; kubectl -n substrate-site get networkpolicy || true
