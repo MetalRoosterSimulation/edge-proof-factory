@@ -33,8 +33,8 @@ export function FootprintStrip({ footprint }: { footprint: Footprint }) {
         ))}
       </div>
       <div className="mt-1 text-[var(--c-ink3)]">
-        <span className="text-[var(--c-ink2)]">Rebuild it yourself:</span>{" "}
-        {footprint.rebuild}
+        <span className="text-[var(--c-ink2)]">Try it for real:</span>{" "}
+        {footprint.tryIt}
       </div>
     </section>
   );

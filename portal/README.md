@@ -58,8 +58,9 @@ show.
 
 **Every console carries a footprint strip** (`components/console/FootprintStrip.tsx`,
 data in `lib/console/footprint.ts`) directly above the guided scenario: the
-single-node shape, the SL Micro / K3s / NeuVector floors, and the rebuild path
-(`docker + k3d + kubectl`, `make up`, ~15 min, installs nothing globally). It
+single-node shape, the SL Micro / K3s / NeuVector floors, and how a viewer gets
+from watching to running (the kit is a partner hand-off; one `make up`, ~15 min
+on a laptop, installs nothing globally). It
 exists because the control-room polish argues against the claim the factory
 rests on — nobody watching strip charts and an alarm journal thinks "we could
 stand that up before lunch" — and because the person whose signature you need is
@@ -73,7 +74,22 @@ never estimated here — the no-fabrication rule applies to a customer-facing
 screen exactly as it applies to a deck. `tests/console/footprint.test.ts` pins
 the quoted values and the citations, so a change to a kit's footprint doc breaks
 a test rather than silently leaving a stale number on a live page. It also
-asserts the strip never claims HA these single-node kits do not have.
+asserts the strip never claims HA these single-node kits do not have, and never
+names **k3d**.
+
+That last one is a real distinction, not pedantry: k3d is "k3s in Docker", the
+laptop stand-in the kit's demo uses, and the kits' own component maps list it in
+the *what the demo uses* column against `SUSE Linux Micro + K3s` in production.
+On a strip headed "what this takes to run", scaffolding reads as the product —
+so K3s is the only Kubernetes this screen names, and the docker/k3d/kubectl
+prerequisites stay in the runbook where someone is about to type them.
+
+The second line was once "Rebuild it yourself: docker + k3d + kubectl, then
+`make up`". That is an instruction the page cannot carry out — a public demo URL
+has no repo to run `make up` in — and "rebuild" read as *rebuild this browser
+demo*, when `make up` builds the on-prem kit instead. It now names the hand-off
+that actually puts the kit in a partner's hands and states plainly that what
+comes up is real containers rather than this simulation.
 
 Honesty contract: a persistent chip ("SIMULATED FAB · same SPC model as the
 on-prem kit · golden-parity-tested") plus a "what is real here" footer

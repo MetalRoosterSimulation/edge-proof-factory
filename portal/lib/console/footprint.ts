@@ -26,8 +26,18 @@ export type Footprint = {
   shape: string;
   /** Short facts, rendered as a row. Keep each to a few words. */
   facts: string[];
-  /** How a partner rebuilds it themselves. */
-  rebuild: string;
+  /**
+   * How a viewer gets from watching this to running the real thing.
+   *
+   * This is NOT an instruction the page can carry out: `make up` needs the kit
+   * repo, and a public demo URL has no repo to offer. It said "Rebuild it
+   * yourself" once, which read as "rebuild this browser demo" — but `make up`
+   * builds the on-prem kit, a different artifact, and conflating the two is the
+   * confusion the honesty contract exists to prevent. So this names the hand-off
+   * that actually puts the kit in their hands, and says plainly that what comes
+   * up is real containers rather than this simulation.
+   */
+  tryIt: string;
   /** Which kit doc these came from — shown to nobody, kept for maintenance. */
   source: string;
 };
@@ -45,13 +55,25 @@ const SINGLE_NODE_FACTS = [
   "one sealed Edge Image Builder image",
 ];
 
-const REBUILD = "docker + k3d + kubectl, then `make up` — about 15 min on a laptop, installs nothing globally";
+/**
+ * No k3d here, deliberately. k3d is "k3s in Docker" — the laptop stand-in the
+ * kit's demo uses, and the kits' own component maps list it in the "what the
+ * demo uses" column against "SUSE Linux Micro + K3s" in production. Naming
+ * scaffolding on a strip headed "what this takes to run" confuses the rehearsal
+ * with the thing being rehearsed. K3s is the product and the only Kubernetes
+ * this screen names; the docker/k3d/kubectl prerequisites live in the runbook,
+ * where someone is actually about to type them.
+ */
+const TRY_IT =
+  "the kit is a partner hand-off — ask your SUSE contact for it. One `make up` " +
+  "brings it up on a laptop in about 15 minutes: real containers, not this " +
+  "simulation, and it installs nothing globally.";
 
 export const CORRIDOR_FOOTPRINT: Footprint = {
   kit: "corridor-vegetation-inspection",
   shape: "Smallest edge box (single-node, non-HA)",
   facts: SINGLE_NODE_FACTS,
-  rebuild: REBUILD,
+  tryIt: TRY_IT,
   source: "handoff/03-production-footprint.md, handoff/00-partner-handoff-runbook.md",
 };
 
@@ -59,7 +81,7 @@ export const SUBSTRATE_FOOTPRINT: Footprint = {
   kit: "site-inference-substrate",
   shape: "Single-node site class (storage cabinet, small solar)",
   facts: SINGLE_NODE_FACTS,
-  rebuild: REBUILD,
+  tryIt: TRY_IT,
   source: "handoff/03-production-footprint.md, handoff/00-partner-handoff-runbook.md",
 };
 
@@ -74,6 +96,6 @@ export const FAB_FOOTPRINT: Footprint = {
     "CPU inference tier — no GPU required",
     "one EIB image, fully air-gapped",
   ],
-  rebuild: REBUILD,
+  tryIt: TRY_IT,
   source: "handoff/03-production-footprint.md, handoff/00-partner-handoff-runbook.md",
 };

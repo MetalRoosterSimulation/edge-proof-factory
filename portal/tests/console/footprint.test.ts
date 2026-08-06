@@ -13,7 +13,10 @@
  *      K3s single-server (SQLite, local-path) + NeuVector All-in-One"
  *   reference-kits/<kit>/handoff/00-partner-handoff-runbook.md
  *     "Rebuild the demo (any laptop, ~15 min)" / "make up" /
- *     "Install docker, k3d, kubectl (the demo installs nothing globally)"
+ *     "the demo installs nothing globally"
+ *
+ * Note the docker/k3d/kubectl prerequisites in that runbook are deliberately NOT
+ * surfaced on screen — see the k3d test below.
  */
 import { describe, expect, it } from "vitest";
 
@@ -37,7 +40,7 @@ describe("footprint", () => {
         expect(fp.kit).toBeTruthy();
         expect(fp.shape).toBeTruthy();
         expect(fp.facts.length).toBeGreaterThanOrEqual(4);
-        expect(fp.rebuild).toBeTruthy();
+        expect(fp.tryIt).toBeTruthy();
       });
 
       it("cites the kit docs the numbers came from", () => {
@@ -64,14 +67,35 @@ describe("footprint", () => {
         expect(fp.facts.join(" ")).toMatch(/SUSE Security \(NeuVector\)/);
       });
 
-      it("gives the rebuild path with its stated time and prerequisites", () => {
-        expect(fp.rebuild).toContain("make up");
-        expect(fp.rebuild).toMatch(/15 min/);
-        expect(fp.rebuild).toMatch(/docker/);
-        expect(fp.rebuild).toMatch(/k3d/);
-        expect(fp.rebuild).toMatch(/kubectl/);
+      it("tells a viewer how to actually get the kit, not just a command", () => {
+        // The old wording ("Rebuild it yourself: docker + k3d + kubectl, then
+        // `make up`") was an instruction the page cannot carry out — a public
+        // demo URL has no repo to run `make up` in. Naming the hand-off is what
+        // makes the line actionable rather than decorative.
+        expect(fp.tryIt).toMatch(/hand-off/);
+        expect(fp.tryIt).toMatch(/SUSE contact/);
+        expect(fp.tryIt).toContain("make up");
+        expect(fp.tryIt).toMatch(/15 minutes/);
         // The runbook's own claim, and the one a practice owner cares about.
-        expect(fp.rebuild).toMatch(/installs nothing globally/);
+        expect(fp.tryIt).toMatch(/installs nothing globally/);
+      });
+
+      it("distinguishes the kit from this simulation", () => {
+        // `make up` builds the on-prem kit, not this browser page. Saying
+        // "rebuild it" blurred the two; the honesty contract needs the line
+        // drawn explicitly.
+        expect(fp.tryIt).toMatch(/real containers/);
+        expect(fp.tryIt).toMatch(/not this simulation/);
+      });
+
+      it("names K3s and never k3d — product, not demo scaffolding", () => {
+        // k3d is "k3s in Docker", the laptop stand-in the kit demo uses; the
+        // kits' component maps list it under what the DEMO uses, against
+        // "SUSE Linux Micro + K3s" in production. On a strip headed "what this
+        // takes to run", scaffolding reads as the product. Keep it out.
+        const all = `${fp.shape} ${fp.facts.join(" ")} ${fp.tryIt}`;
+        expect(all).not.toMatch(/k3d/i);
+        expect(all).toMatch(/K3s/);
       });
 
       it("claims no HA it does not have", () => {
