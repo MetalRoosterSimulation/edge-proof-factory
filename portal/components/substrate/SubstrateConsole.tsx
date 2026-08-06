@@ -18,6 +18,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ScenarioPanel } from "@/components/console/ScenarioPanel";
 import { advance } from "@/lib/console/guided";
 import { SUBSTRATE_SCENARIO, SUBSTRATE_SCENARIO_DONE } from "@/lib/substrate/scenario";
+import { FootprintStrip } from "@/components/console/FootprintStrip";
+import { SUBSTRATE_FOOTPRINT } from "@/lib/console/footprint";
 import {
   DEFAULT_SEED,
   SubstrateEngine,
@@ -147,6 +149,8 @@ export function SubstrateConsole() {
           t={view.t} · seed {view.seed}
         </span>
       </header>
+
+      <FootprintStrip footprint={SUBSTRATE_FOOTPRINT} />
 
       {scenarioOn ? (
         <ScenarioPanel

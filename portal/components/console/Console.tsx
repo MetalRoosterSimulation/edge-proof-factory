@@ -20,6 +20,8 @@ import {
   ToolGrid,
 } from "@/components/console/panels";
 import { ScenarioPanel } from "@/components/console/ScenarioPanel";
+import { FootprintStrip } from "@/components/console/FootprintStrip";
+import { FAB_FOOTPRINT } from "@/lib/console/footprint";
 import { StripChart } from "@/components/console/StripChart";
 import { ackAlarm, deriveAlarms, unackedCount, type Alarm } from "@/lib/console/alarms";
 import { FAB_CONTEXT, SENSOR_META, chamberName } from "@/lib/console/fab";
@@ -257,6 +259,10 @@ export function Console() {
           {unackedCount(alarms)} unack
         </span>
       </header>
+
+      <div className="mt-3">
+        <FootprintStrip footprint={FAB_FOOTPRINT} />
+      </div>
 
       {/* Main grid */}
       <main className="mt-3 grid flex-1 gap-3 lg:grid-cols-[220px_minmax(0,1fr)_300px]">

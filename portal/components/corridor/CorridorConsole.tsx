@@ -17,6 +17,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ScenarioPanel } from "@/components/console/ScenarioPanel";
 import { advance } from "@/lib/console/guided";
 import { CORRIDOR_SCENARIO, CORRIDOR_SCENARIO_DONE } from "@/lib/corridor/scenario";
+import { FootprintStrip } from "@/components/console/FootprintStrip";
+import { CORRIDOR_FOOTPRINT } from "@/lib/console/footprint";
 import {
   ALERT_PCT,
   BACKPRESSURE_PCT,
@@ -191,6 +193,8 @@ export function CorridorConsole() {
           t={view.t} · seed {view.seed}
         </span>
       </header>
+
+      <FootprintStrip footprint={CORRIDOR_FOOTPRINT} />
 
       {scenarioOn ? (
         <ScenarioPanel

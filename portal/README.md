@@ -56,6 +56,25 @@ it the hard way from that test: corridor storage never fills while the WAN is up
 tampered once it has shipped. Put the outage first, or the demo has nothing to
 show.
 
+**Every console carries a footprint strip** (`components/console/FootprintStrip.tsx`,
+data in `lib/console/footprint.ts`) directly above the guided scenario: the
+single-node shape, the SL Micro / K3s / NeuVector floors, and the rebuild path
+(`docker + k3d + kubectl`, `make up`, ~15 min, installs nothing globally). It
+exists because the control-room polish argues against the claim the factory
+rests on — nobody watching strip charts and an alarm journal thinks "we could
+stand that up before lunch" — and because the person whose signature you need is
+asking what delivery takes, not whether Kubernetes survives a WAN cut. Styled
+deliberately quiet: ISA-101 reserves colour for abnormal states and operator
+actions, and a footprint is neither.
+
+Every figure in it is **quoted** from that kit's
+`handoff/03-production-footprint.md` and `handoff/00-partner-handoff-runbook.md`,
+never estimated here — the no-fabrication rule applies to a customer-facing
+screen exactly as it applies to a deck. `tests/console/footprint.test.ts` pins
+the quoted values and the citations, so a change to a kit's footprint doc breaks
+a test rather than silently leaving a stale number on a live page. It also
+asserts the strip never claims HA these single-node kits do not have.
+
 Honesty contract: a persistent chip ("SIMULATED FAB · same SPC model as the
 on-prem kit · golden-parity-tested") plus a "what is real here" footer
 panel. NeuVector is named as the kit's enforcement of the boundary the sim
