@@ -27,6 +27,8 @@ export type ScenarioView = {
 export type ScenarioStep = {
   title: string;
   body: string;
+  /** What runs this in the real kit — see lib/console/guided.ts. */
+  stack: string;
   /** Label for the step's action button, if the step has one. */
   action?: string;
   run?: (engine: DemoEngine) => void;
@@ -39,6 +41,8 @@ const PM = chamberName(SCENARIO_TOOL);
 export const SCENARIO: ScenarioStep[] = [
   {
     title: "Meet the bay",
+    stack:
+      "K3s on SUSE Linux Micro at the bay edge; the SPC model ships as a container, delivered by Fleet.",
     body:
       `Six etch chambers scored on-device by the SPC model — the same ` +
       `Hotelling T² / EWMA model the on-prem kit runs on K3s. Steady-state ` +
@@ -48,6 +52,8 @@ export const SCENARIO: ScenarioStep[] = [
   },
   {
     title: `Simulate: He backside leak on ${PM}`,
+    stack:
+      "The fault is injected into the simulation here; in the kit the same signal arrives on the fab/control topic into the K3s edge cluster.",
     body:
       `Inject a helium backside seal leak — flow rises to hold pressure, ` +
       `electrode temperature drifts. The fab/control topic in the kit; a ` +
@@ -58,6 +64,8 @@ export const SCENARIO: ScenarioStep[] = [
   },
   {
     title: "Watch the excursion",
+    stack:
+      "The SPC model runs as a container on K3s at the bay edge, so detection never waits on a link to the fab network or a cloud.",
     body:
       `He flow breaches its control limit, the T² statistic crosses the UCL, ` +
       `EWMA confirms, and health falls with a cycles-to-critical forecast. ` +
@@ -69,6 +77,8 @@ export const SCENARIO: ScenarioStep[] = [
   },
   {
     title: "Diagnose",
+    stack:
+      "Diagnosis reads local state on the K3s node; nothing about the tool crosses the boundary SUSE Security (NeuVector) enforces to produce it.",
     body:
       `Read the contribution bars — the model attributes the excursion to ` +
       `specific sensors. The signature diagnosis matches it to the fault ` +
@@ -78,6 +88,8 @@ export const SCENARIO: ScenarioStep[] = [
   },
   {
     title: "Remediate",
+    stack:
+      "Remediation is a declared change delivered by Fleet — the same path every other cluster change takes.",
     body:
       `Maintenance reseats the seal. Heal the fault and watch health recover ` +
       `and the alarm return to normal — the baseline never re-learns, so ` +
@@ -94,6 +106,8 @@ export const SCENARIO: ScenarioStep[] = [
   },
   {
     title: "Prove the boundary",
+    stack:
+      "SUSE Security (NeuVector) enforces the egress boundary in the kit; here it is drawn, not executed.",
     body:
       `Simulate a downstream outage: the SUSE Industrial Edge gateway tier ` +
       `buffers raw frames and flushes on recovery — nothing lost. The egress ` +

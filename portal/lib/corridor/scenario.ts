@@ -27,6 +27,8 @@ export type CorridorStep = GuidedStep<CorridorView, CorridorEngine>;
 export const CORRIDOR_SCENARIO: CorridorStep[] = [
   {
     title: "Meet the campaign",
+    stack:
+      "SUSE Linux Micro + K3s as one Edge Image Builder image — the whole site is a single sealed node, not a rack.",
     body:
       "Ground stations upload inspection imagery; a third-party vision model " +
       "scores it on site. With the link up this is unremarkable on purpose — " +
@@ -36,6 +38,8 @@ export const CORRIDOR_SCENARIO: CorridorStep[] = [
   },
   {
     title: "Sever the WAN",
+    stack:
+      "Fleet's pull-based GitOps: the site dials out, nothing dials in. That is why severing the link cannot strand it.",
     body:
       "Cut the link to the central side. Scoring continues, findings and " +
       "evidence queue locally, and nothing is lost — the queues are outbound-" +
@@ -47,6 +51,8 @@ export const CORRIDOR_SCENARIO: CorridorStep[] = [
   },
   {
     title: "Watch working storage reach its bound",
+    stack:
+      "Storage sized in the kit manifests; the alert-then-backpressure order is the deployed policy, not a UI choice.",
     body:
       "With nothing draining, the working set climbs. At 80% the console " +
       "raises ALERT and keeps accepting; at 95% it applies backpressure and " +
@@ -57,6 +63,8 @@ export const CORRIDOR_SCENARIO: CorridorStep[] = [
   },
   {
     title: "Refuse a revoked credential",
+    stack:
+      "SUSE Security (NeuVector) enforces admission on the cluster, so the refusal needs no call to the centre.",
     body:
       "A station whose credential has been revoked attempts an upload. It is " +
       "refused at the edge, on the severed side, with no call to the centre — " +
@@ -67,6 +75,8 @@ export const CORRIDOR_SCENARIO: CorridorStep[] = [
   },
   {
     title: "Heal the link and drain",
+    stack:
+      "Rancher Prime + Fleet reconcile the site back to its declared state — no operator step, no replay tool.",
     body:
       "Restore the WAN. Queued evidence drains in order, the archive count " +
       "climbs, and working storage returns to OK. Recovery is the boring part " +
@@ -77,6 +87,8 @@ export const CORRIDOR_SCENARIO: CorridorStep[] = [
   },
   {
     title: "Swap the vision model",
+    stack:
+      "The scorer is a container delivered by Fleet; the platform underneath it does not change.",
     body:
       "Replace the third-party scorer with a newer version while the campaign " +
       "runs. The platform, the queues, and the evidence format are unchanged — " +

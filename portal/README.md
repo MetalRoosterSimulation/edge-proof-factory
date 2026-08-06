@@ -40,6 +40,16 @@ condition over that console's own view, which is why
 against the real engine and fail if any step is unreachable — the check that
 keeps a scenario honest when the simulation changes underneath it.
 
+Every step also carries a **`stack` line** — what runs that behaviour in the real
+kit, rendered under an explicit "In the kit:" label. This exists because without
+it the consoles pass a name-swap test: a competitor could demo the same steps on
+their own stack, since nothing on screen tied any observed behaviour to anything.
+The full stack was always named, but inside a collapsed `<details>` at the bottom
+of the page — invisible during the demo, which is the only time it matters. The
+"In the kit:" framing is not decoration: the browser runs a simulation, no
+product executes here, and the test suite asserts both that most steps name a
+real component and that no attribution is phrased as a live event.
+
 Scenario order is load-bearing in both of the newer consoles, and both learned
 it the hard way from that test: corridor storage never fills while the WAN is up
 (evidence drains as fast as it is produced), and a substrate bundle cannot be

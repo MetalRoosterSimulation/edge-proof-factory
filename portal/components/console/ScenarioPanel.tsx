@@ -10,7 +10,13 @@ import { SCENARIO } from "@/lib/console/scenario";
 import { actionBtn } from "@/components/console/panels";
 
 /** The minimum a step must expose to be rendered. */
-type RenderableStep = { title: string; body: string; action?: string };
+type RenderableStep = {
+  title: string;
+  body: string;
+  /** What runs this in the real kit — see lib/console/guided.ts. */
+  stack: string;
+  action?: string;
+};
 
 const DEFAULT_DONE_NOTE =
   "Scenario complete. The console stays live — inject faults on any " +
@@ -80,6 +86,13 @@ export function ScenarioPanel({
                 <>
                   <p className="mt-0.5 text-[11px] leading-4 text-[var(--c-ink2)]">
                     {step.body}
+                  </p>
+                  {/* What runs this in the real kit. Labelled, never phrased as
+                      a live event — the browser is running a simulation and the
+                      honesty contract does not bend for attribution. */}
+                  <p className="mt-1 border-l border-[var(--c-line)] pl-1.5 text-[10px] leading-4 text-[var(--c-ink3)]">
+                    <span className="text-[var(--c-ink2)]">In the kit:</span>{" "}
+                    {step.stack}
                   </p>
                   <div className="mt-1 flex gap-1.5">
                     {step.action && !isDone && (

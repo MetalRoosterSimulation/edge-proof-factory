@@ -22,6 +22,8 @@ export type SubstrateStep = GuidedStep<SubstrateView, SubstrateEngine>;
 export const SUBSTRATE_SCENARIO: SubstrateStep[] = [
   {
     title: "Watch local scoring",
+    stack:
+      "SUSE Linux Micro + K3s or RKE2 per site class, one sealed Edge Image Builder image; models served behind the KServe v2 contract.",
     body:
       "Each model scores site telemetry on the node, and each carries its own " +
       "declared behaviour for an uplink outage — continue, flag, or suppress. " +
@@ -31,6 +33,8 @@ export const SUBSTRATE_SCENARIO: SubstrateStep[] = [
   },
   {
     title: "Sever the uplink",
+    stack:
+      "Fleet pull-based GitOps — the site never needs an inbound call, so an outage degrades disposition, not availability.",
     body:
       "Drop the link to the centre. Nothing stops: scoring continues on the " +
       "node. What changes is disposition — the continue model keeps emitting, " +
@@ -42,6 +46,8 @@ export const SUBSTRATE_SCENARIO: SubstrateStep[] = [
   },
   {
     title: "Keep sealing evidence",
+    stack:
+      "The evidence signer runs on the cluster and is delivered by Fleet, so sealing does not depend on the centre being reachable.",
     body:
       "Bundles keep sealing into the hash chain during the outage, each one " +
       "carrying the previous bundle's hash. The record of an outage is written " +
@@ -51,6 +57,8 @@ export const SUBSTRATE_SCENARIO: SubstrateStep[] = [
   },
   {
     title: "Tamper with a bundle sealed during the outage",
+    stack:
+      "The chain is written by the kit at seal time — integrity is a property of the record, not of the network.",
     body:
       "Alter one of the bundles sealed while the link was down — the exact " +
       "record an auditor cares about, because nobody outside the site saw it " +
@@ -66,6 +74,8 @@ export const SUBSTRATE_SCENARIO: SubstrateStep[] = [
   },
   {
     title: "Verify the chain",
+    stack:
+      "Verification runs against the local chain on the node; SUSE Security (NeuVector) governs what may run alongside it.",
     body:
       "Run verification. The chain reports BROKEN and names the sequence where " +
       "the hashes stop agreeing. That is the difference between evidence and a " +
@@ -76,6 +86,8 @@ export const SUBSTRATE_SCENARIO: SubstrateStep[] = [
   },
   {
     title: "Restore and drain",
+    stack:
+      "Rancher Prime + Fleet reconcile the site to its declared state; held work stays held because policy says so.",
     body:
       "Heal the uplink. Queued outputs deliver, flagged ones arrive still " +
       "marked as produced blind, and work held under the suppress policy stays " +

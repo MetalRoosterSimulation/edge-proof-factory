@@ -16,6 +16,21 @@
 export type GuidedStep<V, E = unknown> = {
   title: string;
   body: string;
+  /**
+   * What runs this behaviour **in the real kit** — named component, one line.
+   *
+   * Why every step needs one: without it these consoles pass a name-swap test.
+   * A competitor could demo the same six steps on their own stack, because
+   * nothing on screen attributes any observed behaviour to anything. The full
+   * stack was already named, but inside a collapsed `<details>` at the bottom
+   * of the page — invisible during the demo, which is the only time it matters.
+   *
+   * The honesty contract governs the wording: the browser runs a simulation and
+   * no product is executing here, so this is rendered under an explicit
+   * "In the kit:" label and must be written as what the kit runs, never as a
+   * live event. `guided-scenarios.test.ts` enforces both.
+   */
+  stack: string;
   /** Label for the step's action button, if it has one. */
   action?: string;
   /** Performed when the action button is pressed. */
