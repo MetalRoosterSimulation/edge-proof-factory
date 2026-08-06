@@ -14,6 +14,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { ScenarioPanel } from "@/components/console/ScenarioPanel";
+import { advance } from "@/lib/console/guided";
+import { SUBSTRATE_SCENARIO, SUBSTRATE_SCENARIO_DONE } from "@/lib/substrate/scenario";
 import {
   DEFAULT_SEED,
   SubstrateEngine,
@@ -61,12 +65,19 @@ function Stat({ label, value, color }: { label: string; value: string; color?: s
 export function SubstrateConsole() {
   const engineRef = useRef<SubstrateEngine | null>(null);
   const [view, setView] = useState<SubstrateView | null>(null);
+  const [scenarioOn, setScenarioOn] = useState(true);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [completed, setCompleted] = useState<boolean[]>(() =>
+    SUBSTRATE_SCENARIO.map(() => false),
+  );
 
   const act = useCallback((fn: (e: SubstrateEngine) => void) => {
     const engine = engineRef.current;
     if (engine) {
       fn(engine);
-      setView(engine.view());
+      const v = engine.view();
+      setView(v);
+      setCompleted((prev) => advance(SUBSTRATE_SCENARIO, prev, v));
     }
   }, []);
 
@@ -83,7 +94,9 @@ export function SubstrateConsole() {
       if (timer === null) {
         timer = window.setInterval(() => {
           engine.tick();
-          setView(engine.view());
+          const v = engine.view();
+          setView(v);
+          setCompleted((prev) => advance(SUBSTRATE_SCENARIO, prev, v));
         }, 1000 / TICK_HZ);
       }
     };
@@ -134,6 +147,32 @@ export function SubstrateConsole() {
           t={view.t} · seed {view.seed}
         </span>
       </header>
+
+      {scenarioOn ? (
+        <ScenarioPanel
+          steps={SUBSTRATE_SCENARIO}
+          title="Guided scenario — outage, evidence, tamper"
+          doneNote={SUBSTRATE_SCENARIO_DONE}
+          stepIndex={stepIndex}
+          completed={completed}
+          onAction={(index) => {
+            const step = SUBSTRATE_SCENARIO[index];
+            if (step.run) act(step.run);
+          }}
+          onNext={() =>
+            setStepIndex((i) => Math.min(i + 1, SUBSTRATE_SCENARIO.length - 1))
+          }
+          onDismiss={() => setScenarioOn(false)}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setScenarioOn(true)}
+          className="self-start text-[11px] text-[var(--c-ink3)] hover:text-[var(--c-ink2)]"
+        >
+          Show guided scenario
+        </button>
+      )}
 
       {/* main grid */}
       <main className="grid gap-3 lg:grid-cols-3">

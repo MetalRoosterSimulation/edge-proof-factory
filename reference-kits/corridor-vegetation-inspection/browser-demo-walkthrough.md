@@ -12,6 +12,24 @@ backpressure, recovery all asserted; see `README.md`). When the customer wants
 to see it on hardware, the kit rebuilds on a laptop in about 15 minutes
 (`handoff/00-partner-handoff-runbook.md`).
 
+## Driving it: the guided scenario
+
+The console opens with a **guided scenario** panel — a six-step path from a
+quiet campaign to an outage and back, in the order that makes the design
+explain itself. Each step completes only when the simulation actually reaches
+the state it describes, so it cannot get ahead of what is on screen, and the
+buttons do the work (sever the WAN, attempt a revoked upload, heal, swap the
+model). Dismiss it and the console is unchanged — the scenario is a path
+through the product, not the product.
+
+The order matters and is deliberate: with the link up, evidence archives as
+fast as it is produced and working storage sits near zero, so there is nothing
+to see. Severing the WAN first is what makes the bounded storage, the
+backpressure threshold, and the outbound-only queues visible at all.
+
+If you would rather not narrate it yourself, run the scenario top to bottom and
+let the panel text carry the story.
+
 ## What is being demonstrated
 
 Five properties of the ground-side platform, all visible on the page:

@@ -30,6 +30,22 @@ point, Hotelling T²/EWMA health strip with contribution bars, ISA-18.2-style
 alarm journal, sovereignty panel, AI diagnosis panel, and a scripted guided
 scenario (`lib/console/scenario.ts`) — no tour library.
 
+**All three consoles carry a guided scenario**, so any of them can be driven by
+someone who did not build it: `lib/console/scenario.ts` (excursion to recovery),
+`lib/corridor/scenario.ts` (outage to recovery), `lib/substrate/scenario.ts`
+(outage, evidence, tamper). They share one contract in `lib/console/guided.ts`
+and one panel (`components/console/ScenarioPanel.tsx`). A step is a pure
+condition over that console's own view, which is why
+`tests/console/guided-scenarios.test.ts` can drive each one to completion
+against the real engine and fail if any step is unreachable — the check that
+keeps a scenario honest when the simulation changes underneath it.
+
+Scenario order is load-bearing in both of the newer consoles, and both learned
+it the hard way from that test: corridor storage never fills while the WAN is up
+(evidence drains as fast as it is produced), and a substrate bundle cannot be
+tampered once it has shipped. Put the outage first, or the demo has nothing to
+show.
+
 Honesty contract: a persistent chip ("SIMULATED FAB · same SPC model as the
 on-prem kit · golden-parity-tested") plus a "what is real here" footer
 panel. NeuVector is named as the kit's enforcement of the boundary the sim

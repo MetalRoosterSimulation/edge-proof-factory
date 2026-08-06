@@ -13,6 +13,25 @@ uplink sever and reconcile all asserted; see `README.md`). When the customer
 wants it on hardware, the kit rebuilds on a laptop in about 15 minutes
 (`handoff/00-partner-handoff-runbook.md`).
 
+## Driving it: the guided scenario
+
+The console opens with a **guided scenario** panel — six steps that run the
+outage first and finish on the question an auditor actually asks. Each step
+completes only when the simulation reaches the state it describes, so it cannot
+run ahead of the screen, and the buttons do the work (sever the uplink, tamper
+a bundle, verify, heal). Dismiss it and nothing about the console changes.
+
+Two things about the order are deliberate and worth saying out loud while you
+drive it. The tamper happens **during** the outage, on a bundle sealed while
+nobody outside the site could see it — that is the record whose integrity
+actually matters, and it is also the only window in which it can be tampered,
+because once the link is back the backlog ships. And the verification step comes
+before recovery, so the audience sees that healing the uplink does **not**
+repair a broken chain: the record stays broken, and says which bundle broke it.
+
+A check that can only ever pass is not a check. This one fails, out loud, and
+names the sequence number.
+
 ## What is being demonstrated
 
 Five properties of the site substrate, all visible on the page:

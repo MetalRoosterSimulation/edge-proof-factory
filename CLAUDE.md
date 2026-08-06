@@ -26,7 +26,7 @@ consumes their output (use case, architecture, economics) and produces the proof
    never read it whole; this repo deliberately carries no copy) with sources.
    Unknown numbers stay as ranges or `[FILL]`; never invent node counts,
    durations, prices.
-6. **Faithful architecture.** Match the use-case-factory's architecture (e.g. the
+6. **Faithful architecture.** Match the intel-to-opp factory's architecture (e.g. the
    GEA is a relay, not the compute; governance boundary forwards derived data
    only). If the demo must diverge for footprint, say so in the component map.
 

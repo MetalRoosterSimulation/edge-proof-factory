@@ -9,18 +9,32 @@
 import { SCENARIO } from "@/lib/console/scenario";
 import { actionBtn } from "@/components/console/panels";
 
+/** The minimum a step must expose to be rendered. */
+type RenderableStep = { title: string; body: string; action?: string };
+
+const DEFAULT_DONE_NOTE =
+  "Scenario complete. The console stays live — inject faults on any " +
+  "chamber, or rebuild this end-to-end on your own hardware with the lab guide.";
+
 export function ScenarioPanel({
   stepIndex,
   completed,
   onAction,
   onNext,
   onDismiss,
+  steps = SCENARIO,
+  title = "Guided scenario — excursion to recovery",
+  doneNote = DEFAULT_DONE_NOTE,
 }: {
   stepIndex: number;
   completed: boolean[];
   onAction: (index: number) => void;
   onNext: () => void;
   onDismiss: () => void;
+  /** Defaults to the semiconductor console's scenario. */
+  steps?: ReadonlyArray<RenderableStep>;
+  title?: string;
+  doneNote?: string;
 }) {
   const allDone = completed.every(Boolean);
   return (
@@ -31,7 +45,7 @@ export function ScenarioPanel({
     >
       <div className="flex items-center justify-between">
         <p className="panel-title" style={{ color: "var(--c-action)" }}>
-          Guided scenario — excursion to recovery
+          {title}
         </p>
         <button
           type="button"
@@ -42,7 +56,7 @@ export function ScenarioPanel({
         </button>
       </div>
       <ol className="mt-1.5 space-y-1.5">
-        {SCENARIO.map((step, i) => {
+        {steps.map((step, i) => {
           const isCurrent = i === stepIndex && !allDone;
           const isDone = completed[i];
           return (
@@ -95,11 +109,7 @@ export function ScenarioPanel({
         })}
       </ol>
       {allDone && (
-        <p className="mt-2 text-[11px] text-[var(--c-ink2)]">
-          Scenario complete. The console stays live — inject faults on any
-          chamber, or rebuild this end-to-end on your own hardware with the
-          lab guide.
-        </p>
+        <p className="mt-2 text-[11px] text-[var(--c-ink2)]">{doneNote}</p>
       )}
     </section>
   );

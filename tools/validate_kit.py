@@ -210,8 +210,152 @@ def _read(path):
         return fh.read()
 
 
+def _reset():
+    """Clear the module-level result accumulators (selftest runs main() repeatedly)."""
+    del errors[:]
+    del warnings[:]
+    del passes[:]
+
+
+USAGE = """usage: validate_kit.py <kit-dir>
+       validate_kit.py --selftest
+
+Release gate for a Proof Kit. Exit 0 if every check passes, 1 on any FAIL,
+2 on a usage error.
+
+What it checks:
+  structure     demo/{Makefile,k8s/base/kustomization.yaml,tests} and
+                handoff/{00-runbook,01-component-map,02-scale-up,03-footprint}.md,
+                plus a Dockerfile in every demo/images/* directory
+  manifests     kubectl kustomize builds each overlay (base, ai, losant) when
+                kubectl is on PATH, else WARN; k8s/neuvector/fleet.yaml must
+                name a Helm chart
+  dashboards    every .html under demo/ is self-contained (no CDN, no @import,
+                no remote src/href)
+  voice         no filler words (%s) and no unresolved
+                [FILL] / [NEEDS ...] markers in partner-facing docs
+  portability   no ~/Work/ or /home/kibby paths in handoff docs, the browser-demo
+                walkthrough, or the repo's user-facing guides
+  walkthrough   if browser-demo-walkthrough.md exists, its rendered .pdf sits
+                beside it (tools/md2pdf.py generates it)
+  tests         every demo/tests/test_*.py exits 0
+""" % ", ".join(BANNED)
+
+
+def _selftest():
+    """Build synthetic kits in a temp dir and assert each detector fires.
+
+    Runs main() once per scenario with stdout captured, so the assertions read
+    the accumulators rather than the printed report.
+    """
+    import io
+    import shutil
+    import tempfile
+    import contextlib
+
+    checks = [0]
+
+    def check(cond, label):
+        checks[0] += 1
+        if not cond:
+            print("SELFTEST FAILED: %s" % label)
+            sys.exit(1)
+
+    def build(root, **opts):
+        """Write a minimal kit. Options flip one fault on at a time."""
+        demo = os.path.join(root, "demo")
+        handoff = os.path.join(root, "handoff")
+        os.makedirs(os.path.join(demo, "k8s", "base"))
+        os.makedirs(os.path.join(demo, "tests"))
+        os.makedirs(os.path.join(demo, "images", "edge-inference"))
+        os.makedirs(handoff)
+        _write(os.path.join(demo, "Makefile"), "up:\n\t@echo up\n")
+        _write(os.path.join(demo, "k8s", "base", "kustomization.yaml"),
+               "resources: []\n")
+        _write(os.path.join(demo, "images", "edge-inference", "Dockerfile"),
+               "FROM scratch\n")
+        _write(os.path.join(demo, "tests", "test_model.py"),
+               "import sys\nsys.exit(%d)\n" % (1 if opts.get("failing_test") else 0))
+        html = ('<html><body><p>console</p>%s</body></html>'
+                % ('<script src="https://cdn.example.com/x.js"></script>'
+                   if opts.get("external_html") else ""))
+        _write(os.path.join(demo, "dash.html"), html)
+        docs = ["00-partner-handoff-runbook.md", "01-component-map.md",
+                "02-scale-up-path.md", "03-production-footprint.md"]
+        if opts.get("drop_footprint"):
+            docs.remove("03-production-footprint.md")
+        body = "# Doc\n\nA plain sentence about the kit.\n"
+        if opts.get("banned"):
+            body += "\nThis is a robust design.\n"
+        if opts.get("marker"):
+            body += "\nNode count: [FILL]\n"
+        if opts.get("abs_path"):
+            body += "\nSee /home/kibby/notes.md.\n"
+        for d in docs:
+            _write(os.path.join(handoff, d), body)
+        if opts.get("walkthrough_no_pdf"):
+            _write(os.path.join(root, "browser-demo-walkthrough.md"),
+                   "# Walkthrough\n\nOpen the console.\n")
+
+    def run(**opts):
+        root = tempfile.mkdtemp(prefix="validate_kit_selftest_")
+        try:
+            kit = os.path.join(root, "kit")
+            os.makedirs(kit)
+            build(kit, **opts)
+            _reset()
+            with contextlib.redirect_stdout(io.StringIO()):
+                main(kit)
+            return list(errors)
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+    def fired(errs, needle):
+        return any(needle in e for e in errs)
+
+    # A clean synthetic kit must raise no kit-scoped errors. Repo-scoped
+    # portable-doc checks run against the real repo and are excluded here so
+    # the selftest stays independent of repo content.
+    base = [e for e in run() if not e.startswith(("README.md", "docs/", "integrations/", "portal/"))]
+    check(base == [], "clean kit produced kit-scoped errors: %s" % base)
+
+    check(fired(run(drop_footprint=True), "missing: handoff footprint"),
+          "missing handoff doc not detected")
+    check(fired(run(banned=True), "banned filler word 'robust'"),
+          "banned filler word not detected")
+    check(fired(run(marker=True), "unresolved marker [FILL]"),
+          "unresolved marker not detected")
+    check(fired(run(abs_path=True), "machine-specific paths"),
+          "machine-specific path not detected")
+    check(fired(run(external_html=True), "not self-contained"),
+          "external resource in HTML not detected")
+    check(fired(run(walkthrough_no_pdf=True), "generated PDF"),
+          "walkthrough without its PDF not detected")
+    check(fired(run(failing_test=True), "unit tests FAILED"),
+          "failing unit test not detected")
+
+    print("selftest: OK (%d checks — every detector fires, clean kit stays clean)"
+          % checks[0])
+    return 0
+
+
+def _write(path, text):
+    with open(path, "w") as fh:
+        fh.write(text)
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("usage: validate_kit.py <kit-dir>")
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
+        print(USAGE)
+        sys.exit(0 if args else 2)
+    if args[0] == "--selftest":
+        sys.exit(_selftest())
+    if len(args) != 1:
+        print(USAGE)
         sys.exit(2)
-    sys.exit(main(sys.argv[1]))
+    if not os.path.isdir(args[0]):
+        print("validate_kit: not a directory: %s\n" % args[0])
+        print(USAGE)
+        sys.exit(2)
+    sys.exit(main(args[0]))
