@@ -9,9 +9,12 @@ Chrome/Chromium. The Markdown file is the source of truth — never edit a
 generated PDF; edit the md and re-render.
 
 Markdown subset: #/##/### headings, bullet (- ) and numbered (N. ) lists,
-fenced code blocks, **bold**, `code`, blank-line paragraphs. Soft-wrapped
-lines inside a paragraph or list item are unwrapped before rendering so
-the PDF reads as flowing prose.
+fenced code blocks, **bold**, *italic*, `code`, blank-line paragraphs,
+pipe tables (| a | b | with a |---| separator row), > blockquotes, and
+--- horizontal rules (added 2026-09-03 — the home-dir use-case index was
+the first doc to need them; pure superset, prior docs render unchanged).
+Soft-wrapped lines inside a paragraph or list item are unwrapped before
+rendering so the PDF reads as flowing prose.
 """
 
 import html
@@ -36,6 +39,17 @@ code { font-family: monospace; background: #EFEFEF; padding: 1px 4px;
 pre { background: #0C322C; color: #90EBCD; padding: 12px; border-radius: 6px;
       white-space: pre-wrap; font-size: 10px; line-height: 1.4; }
 pre code { background: none; color: inherit; padding: 0; }
+table { border-collapse: collapse; margin: 8px 0 12px; font-size: 10px;
+        width: 100%; }
+th, td { border: 1px solid #C9D6D0; padding: 4px 7px; text-align: left;
+         vertical-align: top; }
+th { background: #0C322C; color: #FFFFFF; font-weight: 600; }
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
+blockquote { border-left: 3px solid #30BA78; margin: 8px 0; padding: 2px 12px;
+             color: #46655B; }
+blockquote p { margin: 4px 0; }
+hr { border: none; border-top: 1px solid #C9D6D0; margin: 16px 0; }
 """
 
 
@@ -50,7 +64,9 @@ def unwrap(text):
             continue
         items = []
         for ln in lines:
-            if re.match(r"^\s*([-*]\s|\d+\.\s)", ln) or not items:
+            # table rows and blockquote lines keep their own line —
+            # unwrapping them destroys the structure the renderer needs
+            if re.match(r"^\s*([-*]\s|\d+\.\s|\||>)", ln) or not items:
                 items.append(ln.rstrip())
             else:
                 items[-1] = items[-1] + " " + ln.strip()
@@ -61,13 +77,91 @@ def unwrap(text):
 def inline(s):
     s = html.escape(s)
     s = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s)
+    s = re.sub(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])", r"<i>\1</i>", s)
     s = re.sub(r"`(.+?)`", r"<code>\1</code>", s)
     return s
 
 
+def _flush_table(out, rows):
+    """rows: list of raw '| a | b |' lines (separator row already dropped)."""
+    if not rows:
+        return
+    def cells(ln):
+        return [c.strip() for c in ln.strip().strip("|").split("|")]
+    out.append("<table><thead><tr>%s</tr></thead><tbody>"
+               % "".join("<th>%s</th>" % inline(c) for c in cells(rows[0])))
+    for ln in rows[1:]:
+        out.append("<tr>%s</tr>"
+                   % "".join("<td>%s</td>" % inline(c) for c in cells(ln)))
+    out.append("</tbody></table>")
+
+
 def md_to_html(md):
     out, in_ul, in_code, code_buf = [], False, False, []
+    table_rows, in_quote, quote_buf = [], False, []
+
+    def close_blocks():
+        nonlocal in_ul, in_quote
+        if in_ul:
+            out.append("</ul>")
+            in_ul = False
+        if in_quote:
+            if quote_buf:
+                out.append("<p>%s</p>" % inline(" ".join(quote_buf)))
+                del quote_buf[:]
+            out.append("</blockquote>")
+            in_quote = False
+        if table_rows:
+            _flush_table(out, table_rows)
+            del table_rows[:]
+
     for line in md.splitlines():
+        stripped0 = line.strip()
+        # pipe-table rows collect until a non-table line flushes them
+        if stripped0.startswith("|"):
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if in_quote:
+                out.append("</blockquote>")
+                in_quote = False
+            if not re.match(r"^\|[\s:|-]+\|$", stripped0):  # skip |---| row
+                table_rows.append(stripped0)
+            continue
+        if table_rows:
+            _flush_table(out, table_rows)
+            del table_rows[:]
+        # blockquote lines — soft-wrapped continuations join one paragraph,
+        # so inline spans (**bold**) survive the wrap; a bare '>' line
+        # starts a new paragraph inside the quote
+        if stripped0.startswith(">"):
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if not in_quote:
+                out.append("<blockquote>")
+                in_quote = True
+            body = stripped0.lstrip(">").strip()
+            if body:
+                quote_buf.append(body)
+            elif quote_buf:
+                out.append("<p>%s</p>" % inline(" ".join(quote_buf)))
+                del quote_buf[:]
+            continue
+        if in_quote and stripped0:
+            quote_buf.append(stripped0)
+            continue
+        if in_quote and not stripped0:
+            if quote_buf:
+                out.append("<p>%s</p>" % inline(" ".join(quote_buf)))
+                del quote_buf[:]
+            out.append("</blockquote>")
+            in_quote = False
+        # horizontal rule
+        if re.match(r"^-{3,}$", stripped0):
+            close_blocks()
+            out.append("<hr>")
+            continue
         if line.strip().startswith("```"):
             if in_code:
                 out.append("<pre><code>%s</code></pre>"
@@ -100,6 +194,12 @@ def md_to_html(md):
             out.append("<p>%s</p>" % inline(stripped))
     if in_ul:
         out.append("</ul>")
+    if in_quote:
+        if quote_buf:
+            out.append("<p>%s</p>" % inline(" ".join(quote_buf)))
+        out.append("</blockquote>")
+    if table_rows:
+        _flush_table(out, table_rows)
     if in_code:
         out.append("<pre><code>%s</code></pre>"
                    % html.escape("\n".join(code_buf)))
