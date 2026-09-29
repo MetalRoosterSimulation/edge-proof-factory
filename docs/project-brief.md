@@ -8,7 +8,7 @@ case with as few resources as possible, and (2) hand off what was shown so the
 partner can rebuild it on their own limited hardware.
 
 ## Why this is a new factory
-The two existing factories produce paper. `~/Work/bd-trigger-to-deal-factory/Edge`
+The two existing factories produce paper. `~/Work/_archive/Edge`
 produces the BD messaging package (business case, per-use-case outreach, tech
 brief) and explicitly hands pilots/demos/labs to the human. `~/Work/use-case-
 factory` produces architecture diagrams + build process + PS playbook, with

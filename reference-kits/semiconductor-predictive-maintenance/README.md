@@ -16,6 +16,6 @@ Losant Edge Workflow. Rancher is wired via the Rancher MCP server at
 `../../integrations/rancher-mcp-server/`.
 
 Provenance: this kit's use case, architecture, and partner economics are seeded
-from `~/Work/intel-to-opp` (the semiconductor architecture package) and
-`~/Work/bd-trigger-to-deal-factory/Edge` (the edge/AI BD factory). This factory
+from `~/Work/pipeline/package` (the semiconductor architecture package) and
+`~/Work/_archive/Edge` (the edge/AI BD factory). This factory
 adds the one thing neither produced: a running proof and a hand-off, not paper.

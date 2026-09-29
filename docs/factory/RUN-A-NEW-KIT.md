@@ -7,9 +7,9 @@ Use case: [Partner] / [Industry] / [Use case]
 
 ## Stage 0 — seed from the sibling factories (don't re-research)
 - Pull the architecture + build process + PS playbook from
-  `~/Work/intel-to-opp/output/<partner>/<...>/` if it exists.
+  `~/Work/pipeline/package/output/<partner>/<...>/` if it exists.
 - Pull the use-case pattern + economics from
-  `~/Work/bd-trigger-to-deal-factory/Edge/docs/use-case-library.md` and
+  `~/Work/_archive/Edge/docs/use-case-library.md` and
   `engagement-economics.md`.
 - Pull SUSE product facts from `docs/suse-edge-ai-stack.md`; grep the shared
   `suse-brain.md` for anything missing. Record versions with sources.
