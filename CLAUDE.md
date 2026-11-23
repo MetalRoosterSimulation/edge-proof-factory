@@ -1,5 +1,9 @@
 # CLAUDE.md — Edge Proof Factory map
 
+> **SUSE Industrial Edge (Losant) is no longer sold** (owner 2026-11-19; roof rule F in `~/Work/CLAUDE.md`,
+> 2026-11-23). The kits and demos here that use the Losant gateway tier stay as built, as history. No new kit,
+> demo or hand-off names Industrial Edge or Losant, and none of this content is copied into new work.
+
 Read this first. This factory turns a SUSE Edge/AI use case into a **runnable
 minimal-footprint MVP** + a **partner hand-off kit** ("Proof Kit"). It is the
 build/demo/hand-off sibling of the paper-producing factories:
